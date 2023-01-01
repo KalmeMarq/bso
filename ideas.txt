@@ -1,0 +1,152 @@
+BSO
+
+[x] BSO
+[x] BSO to SBSO
+[x] BSO to JSON (string)
+[ ] SBSO to BSO
+
+Main Types
+
+  [x] 0x00 Null
+        0x10 End
+  [x] 0x01 Byte            i8
+  [x] 0x02 Short           i16
+  [x] 0x03 Int             i32
+  [x] 0x04 Long            i64
+  [x] 0x05 Float           f32
+  [x] 0x06 Double          f64
+  [x] 0x07 String          utf8
+  [x] 0x08 Map
+  [x] 0x09 List
+  [x] 0x0A ByteArray       i8[]
+  [x] 0x0B ShortArray      i16[]
+  [x] 0x0C IntArray        i32[]
+  [x] 0x0D LongArray       i64[]
+  [x] 0x0E FloatArray      f32[]
+  [x] 0x0F DoubleArray     f64[]
+
+Additional Data
+
+  List/ByteArray/ShortArray/IntArray/LongArray/FloatArray/DoubleArray
+    0x00 Read list length as uint8
+    0x10 Read list length as uint16
+    0x20 Read list length as int32
+    0x30 Indefinite length
+
+  Null
+    0x10 Interprets it as an End "code". Used for indefinite length list/array/map
+
+Data
+
+  Byte | ID + NUMBER
+
+    0x01 BYTE
+
+  Short | ID + NUMBER
+  
+    0x02 SHORT
+
+  Int | ID + NUMBER
+
+    0x03 INT
+
+  Long | ID + NUMBER
+
+    0x04 LONG
+
+  Float | ID + NUMBER
+
+    0x05 FLOAT
+
+  Double | ID + NUMBER
+
+    0x06 DOUBLE
+
+  String | ID + LENGTH + STRING
+
+    0x07 uint16 UTF8
+
+  Map | ID + MAP + NULL(Break)
+
+    0x08 MAP NULL
+
+  List | ID + HELDTYPE + LENGTH + LIST
+
+    0x09 int8 uint8  LIST
+
+    0x09 int8 uint16 LIST
+
+    0x09 int8 int32  LIST
+
+  ByteArray | ID + LENGTH + ByteArray
+
+    0x0A uint8  BYTEARRAY
+
+    0x0A uint16 BYTEARRAY
+
+    0x0A int32  BYTEARRAY
+
+  ShortArray | ID + LENGTH + ShortArray
+
+    0x0B uint8  SHORTARRAY
+
+    0x0B uint16 SHORTARRAY
+
+    0x0B int32  SHORTARRAY
+
+  IntArray | ID + LENGTH + IntArray
+
+    0x0C uint8  INTARRAY
+
+    0x0C uint16 INTARRAY
+
+    0x0C int32  INTARRAY
+
+  LongArray | ID + LENGTH + LongArray
+
+    0x0D uint8  LONGARRAY
+
+    0x0D uint16 LONGARRAY
+
+    0x0D int32  LONGARRAY
+
+  FloatArray | ID + LENGTH + FloatArray
+
+    0x0E uint8  FLOATARRAY
+
+    0x0E uint16 FLOATARRAY
+
+    0x0E int32  FLOATARRAY
+
+  DoubleArray | ID + LENGTH + DoubleArray
+
+    0x0F uint8  DOUBLEARRAY
+
+    0x0F uint16 DOUBLEARRAY
+
+    0x0F int32  DOUBLEARRAY
+
+
+Ideas
+
+  Turn ByteArray/ShortArray/IntArray/LongArray/FloatArray/DoubleArray into a single type Array
+
+  An Array would only contain a single BSO Type
+
+  A List would allow multiple BSO Types inside of it
+
+  new BSOArray(BSOTypes.BYTE)
+
+  But maybe having individual arrays may be useful...
+
+  ByteString?
+
+  Make List/Arrays have indefinite length? It could save bytes but knowing the length may also be useful
+
+  Int
+    0x20 Short
+    0x30 Byte
+  Long
+    0x10 Int
+    0x20 Short
+    0x30 Byte
