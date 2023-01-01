@@ -8,6 +8,8 @@ Optionally, they can also have an indefinite length. Map uses it by default.
 
 I was trying to also allow different length types for strings. When I was doing that, in my head, I was thinking the default (short) was just length of 255 (but it's actually 65535). I'm dumb :/. I'll still added it bc for the most part, for my projects where I'll use this, most strings won't have a bigger length than 255.
 
+A BSO type can have ddditional data which allows to save bytes as much as possible.
+
 ## Types
 
 - 0x00 Null
