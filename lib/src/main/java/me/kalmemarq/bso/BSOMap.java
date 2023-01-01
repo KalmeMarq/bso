@@ -89,8 +89,22 @@ public class BSOMap implements BSOElement {
         return this.entries.size();
     }
 
+    private byte getType(String key) {
+        BSOElement el = this.entries.get(key);
+        if (el == null) BSOTypes.NULL.getId();
+        return el.getTypeId();
+    }
+
     public boolean contains(String key) {
         return this.entries.containsKey(key);
+    }
+
+    public boolean contains(String key, BSOType type) {
+        return this.contains(key, type.getId());
+    }
+
+    public boolean contains(String key, int type) {
+        return this.getType(key) == type;
     }
 
     public void put(String key, BSOElement value) {
@@ -133,7 +147,7 @@ public class BSOMap implements BSOElement {
         this.entries.put(key, BSOByteArray.of(value));
     }
 
-    public void put(String key, boolean[] value) {
+    public void putByteArray(String key, boolean[] value) {
         this.entries.put(key, BSOByteArray.of(value));
     }
 
@@ -141,7 +155,7 @@ public class BSOMap implements BSOElement {
         this.entries.put(key, BSOByteArray.of(value));
     }
 
-    public void put(String key, short[] value) {
+    public void putShortArray(String key, short[] value) {
         this.entries.put(key, BSOShortArray.of(value));
     }
 
@@ -149,7 +163,7 @@ public class BSOMap implements BSOElement {
         this.entries.put(key, BSOShortArray.of(value));
     }
     
-    public void put(String key, int[] value) {
+    public void putIntArray(String key, int[] value) {
         this.entries.put(key, BSOIntArray.of(value));
     }
 
@@ -157,7 +171,7 @@ public class BSOMap implements BSOElement {
         this.entries.put(key, BSOIntArray.of(value));
     }
     
-    public void put(String key, long[] value) {
+    public void putLongArray(String key, long[] value) {
         this.entries.put(key, BSOLongArray.of(value));
     }
 
@@ -165,7 +179,7 @@ public class BSOMap implements BSOElement {
         this.entries.put(key, BSOLongArray.of(value));
     }
 
-    public void put(String key, float[] value) {
+    public void putFloatArray(String key, float[] value) {
         this.entries.put(key, BSOFloatArray.of(value));
     }
 
@@ -173,12 +187,91 @@ public class BSOMap implements BSOElement {
         this.entries.put(key, BSOFloatArray.of(value));
     }
 
-    public void put(String key, double[] value) {
+    public void putDoubleArray(String key, double[] value) {
         this.entries.put(key, BSODoubleArray.of(value));
     }
 
     public void putDoubleArray(String key, List<Double> value) {
         this.entries.put(key, BSODoubleArray.of(value));
+    }
+
+    public byte getByte(String key) {
+        if (this.contains(key, BSOTypes.BYTE)) return ((BSOByte)this.entries.get(key)).getValue();
+        return 0;
+    }
+    
+    public boolean getBoolean(String key) {
+        return getByte(key) != 0;
+    }
+
+    public short getShort(String key) {
+        if (this.contains(key, BSOTypes.SHORT)) return ((BSOShort)this.entries.get(key)).getValue();
+        return 0;
+    }
+
+    public int getInt(String key) {
+        if (this.contains(key, BSOTypes.INT)) return ((BSOInt)this.entries.get(key)).getValue();
+        return 0;
+    }
+
+    public long getLong(String key) {
+        if (this.contains(key, BSOTypes.LONG)) return ((BSOLong)this.entries.get(key)).getValue();
+        return 0;
+    }
+
+    public float getFloat(String key) {
+        if (this.contains(key, BSOTypes.FLOAT)) return ((BSOFloat)this.entries.get(key)).getValue();
+        return 0;
+    }
+
+    public double getDouble(String key) {
+        if (this.contains(key, BSOTypes.DOUBLE)) return ((BSODouble)this.entries.get(key)).getValue();
+        return 0;
+    }
+
+    public String getString(String key) {
+        if (this.contains(key, BSOTypes.STRING)) return ((BSOString)this.entries.get(key)).getValue();
+        return 0;
+    }
+
+    public byte[] getByteArray(String key) {
+        if (this.contains(key, BSOTypes.BYTE_ARRAY)) return ((BSOByteArray)this.entries.get(key)).getByteArray();
+        return new byte[0];
+    }
+
+    public short[] getShortArray(String key) {
+        if (this.contains(key, BSOTypes.SHORT_ARRAY)) return ((BSOShortArray)this.entries.get(key)).getShortArray();
+        return new short[0];
+    }
+
+    public int[] getIntArray(String key) {
+        if (this.contains(key, BSOTypes.INT_ARRAY)) return ((BSOIntArray)this.entries.get(key)).getIntArray();
+        return new int[0];
+    }
+
+    public long[] getLongArray(String key) {
+        if (this.contains(key, BSOTypes.LONG_ARRAY)) return ((BSOLongArray)this.entries.get(key)).getLongArray();
+        return new long[0];
+    }
+
+    public float[] getFloatArray(String key) {
+        if (this.contains(key, BSOTypes.FLOAT_ARRAY)) return ((BSOFloatArray)this.entries.get(key)).getFloatArray();
+        return new float[0];
+    }
+
+    public double[] getDoubleArray(String key) {
+        if (this.contains(key, BSOTypes.DOUBLE_ARRAY)) return ((BSODoubleArray)this.entries.get(key)).getDoubleArray();
+        return new double[0];
+    }
+
+    public BSOMap getMap(String key) {
+        if (this.contains(key, BSOTypes.MAP)) return (BSOMap)this.entries.get(key);
+        return new BSOMap();
+    }
+
+    public BSOList getList(String key) {
+        if (this.contains(key, BSOTypes.LIST)) return (BSOList)this.entries.get(key);
+        return new BSOList();
     }
 
     @Nullable
