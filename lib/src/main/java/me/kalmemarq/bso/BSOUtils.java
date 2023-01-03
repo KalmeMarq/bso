@@ -15,14 +15,22 @@ import java.util.zip.GZIPOutputStream;
 
 public class BSOUtils {
     public static void write(File file, BSOElement element) throws IOException {
-        try (FileOutputStream outputStream = new FileOutputStream(file); DataOutputStream dataOutputStream = new DataOutputStream(outputStream)) {
-            write(element, dataOutputStream);
-        }
+        write(file, element, BSOWriteOptions.DEFAULT);
     }
 
     public static void writeCompressed(File file, BSOElement element) throws IOException {
-        try (FileOutputStream outputStream = new FileOutputStream(file); DataOutputStream dataOutputStream = new DataOutputStream(new BufferedOutputStream(new GZIPOutputStream(outputStream)))) {
-            write(element, dataOutputStream);
+        write(file, element, new BSOWriteOptions(BSOWriteOptions.DEFAULT).withCompression());
+    }
+
+    public static void write(File file, BSOElement element, BSOWriteOptions options) throws IOException {
+        if (options.gzipCompression()) {
+            try (FileOutputStream outputStream = new FileOutputStream(file); DataOutputStream dataOutputStream = new DataOutputStream(new BufferedOutputStream(new GZIPOutputStream(outputStream)))) {
+                write(element, dataOutputStream);
+            }
+        } else {
+            try (FileOutputStream outputStream = new FileOutputStream(file); DataOutputStream dataOutputStream = new DataOutputStream(outputStream)) {
+                write(element, dataOutputStream);
+            }
         }
     }
 
@@ -85,5 +93,59 @@ public class BSOUtils {
             return SHORT_LENGTH;
         }
         return 0;
+    }
+
+    public static class BSOWriteOptions {
+        public static final BSOWriteOptions DEFAULT = new BSOWriteOptions().withIndefiniteLength().withVarLength().withVarNum();
+
+        private boolean allowVarNum;
+        private boolean allowIndefiniteLength;
+        private boolean allowVarLength;
+        private boolean compress;
+
+        public BSOWriteOptions() {}
+
+        public BSOWriteOptions(BSOWriteOptions options) {
+            this.allowVarNum = options.allowVarNum;
+            this.allowIndefiniteLength = options.allowIndefiniteLength;
+            this.allowVarLength = options.allowVarLength;
+            this.compress = options.compress;
+        }
+
+        public BSOWriteOptions withVarNum() {
+            this.allowVarNum = true;
+            return this;
+        }
+
+        public BSOWriteOptions withIndefiniteLength() {
+            this.allowIndefiniteLength = true;
+            return this;
+        }
+        
+        public BSOWriteOptions withVarLength() {
+            this.allowVarLength = true;
+            return this;
+        }
+
+        public BSOWriteOptions withCompression() {
+            this.compress = true;
+            return this;
+        }
+
+        public boolean allowVarNum() {
+            return this.allowVarNum;
+        }
+
+        public boolean allowIndefiniteLength() {
+            return this.allowIndefiniteLength;
+        }
+
+        public boolean allowVarLength() {
+            return this.allowVarLength;
+        }
+
+        public boolean gzipCompression() {
+            return this.compress;
+        }
     }
 }
