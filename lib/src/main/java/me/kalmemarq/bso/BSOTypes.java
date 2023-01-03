@@ -91,16 +91,16 @@ public final class BSOTypes {
             Map<String, BSOElement> map = new HashMap<>();
             
             if (additionalData == BSOUtils.INDEFINITE_LENGTH) {
-                int len = BSOUtils.readLength(input, additionalData);
-
-                for (int i = 0; i < len; i++) {
-                    byte b = input.readByte();
+                byte b;
+                while ((b = input.readByte()) != BSOElement.END_TYPE_ID) {
                     BSOType<?> type = BSOTypes.byId((byte)(b & 0x0F));
                     map.put(input.readUTF(), type.read(input, (byte)(b & 0xF0)));
                 }
             } else {
-                byte b;
-                while ((b = input.readByte()) != BSOElement.END_TYPE_ID) {
+                int len = BSOUtils.readLength(input, additionalData);
+
+                for (int i = 0; i < len; i++) {
+                    byte b = input.readByte();
                     BSOType<?> type = BSOTypes.byId((byte)(b & 0x0F));
                     map.put(input.readUTF(), type.read(input, (byte)(b & 0xF0)));
                 }
