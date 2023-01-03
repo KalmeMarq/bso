@@ -1,8 +1,10 @@
 export class BufferReader {
+  private data: Uint8Array;
   private view: DataView;
   private cursor = 0;
 
   public constructor(data: Uint8Array) {
+    this.data = data;
     this.view = new DataView(data.buffer);
   }
 
@@ -65,5 +67,19 @@ export class BufferReader {
   public readDouble() {
     this.cursor += 8;
     return this.view.getFloat64(this.cursor - 8);
+  }
+
+  public isFullyRead() {
+    return this.cursor === this.data.length;
+  }
+
+  public readToEndAsString() {
+    let str = '';
+
+    while (this.cursor < this.data.length) {
+      str += String.fromCharCode(this.readUByte());
+    }
+
+    return str;
   }
 }

@@ -745,10 +745,15 @@ function readBSOElement(input: BufferReader, type: BSOType, additionalData: numb
   }
 }
 
-function readBSO(data: Uint8Array) {
+function readBSO(data: Uint8Array, showSus?: boolean) {
   const input = new BufferReader(data);
   const id = input.readByte();
-  return readBSOElement(input, BSOIDsType[id & 0x0f], id & 0xf0);
+  const element = readBSOElement(input, BSOIDsType[id & 0x0f], id & 0xf0);
+  if (showSus && !input.isFullyRead()) {
+    console.log("There's more stuff at the end of the file... that's kinda sus:");
+    console.log('    ' + input.readToEndAsString());
+  }
+  return element;
 }
 
 export {
