@@ -91,7 +91,7 @@ public class BSOMap implements BSOElement {
 
     private byte getType(String key) {
         BSOElement el = this.entries.get(key);
-        if (el == null) BSOTypes.NULL.getId();
+        if (el == null) return BSOTypes.NULL.getId();
         return el.getTypeId();
     }
 
@@ -99,7 +99,7 @@ public class BSOMap implements BSOElement {
         return this.entries.containsKey(key);
     }
 
-    public boolean contains(String key, BSOType type) {
+    public boolean contains(String key, BSOType<?> type) {
         return this.contains(key, type.getId());
     }
 
@@ -231,7 +231,7 @@ public class BSOMap implements BSOElement {
 
     public String getString(String key) {
         if (this.contains(key, BSOTypes.STRING)) return ((BSOString)this.entries.get(key)).getValue();
-        return 0;
+        return "";
     }
 
     public byte[] getByteArray(String key) {
