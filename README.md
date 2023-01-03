@@ -1,8 +1,8 @@
 # BSO (Binary Storage Object) (I may still change the name)
 
 Languages:
-  - Java [master](https://github.com/KalmeMarq/bso/tree/master)
-  - Typescript [deno](https://github.com/KalmeMarq/bso/tree/deno)
+  - Java (Branch: [master](https://github.com/KalmeMarq/bso/tree/master))
+  - Typescript (Branch: [deno](https://github.com/KalmeMarq/bso/tree/deno))
 
 I wanted to make my own json binary thing, so I looked at NBT, BSON and CBOR to see what they were up to. It's simple like NBT but I wanted to see what other stuff I could add.
 
