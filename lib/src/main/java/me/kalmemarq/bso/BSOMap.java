@@ -60,6 +60,11 @@ public class BSOMap implements BSOElement {
     }
 
     @Override
+    public int getAdditionalData() {
+        return BSOUtils.lengthAdditionalData(this.size(), this.indefiniteLength);
+    }
+
+    @Override
     public void accept(Visitor visitor) {
         visitor.visitMap(this);
     }

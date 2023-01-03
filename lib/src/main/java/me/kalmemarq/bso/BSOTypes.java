@@ -89,6 +89,7 @@ public final class BSOTypes {
         @Override
         public BSOMap read(DataInput input, int additionalData) throws IOException {
             Map<String, BSOElement> map = new HashMap<>();
+            System.out.println(additionalData);
             
             if (additionalData == BSOUtils.INDEFINITE_LENGTH) {
                 byte b;

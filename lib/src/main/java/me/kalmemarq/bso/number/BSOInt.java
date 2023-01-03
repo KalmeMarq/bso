@@ -5,7 +5,6 @@ import java.io.IOException;
 
 import me.kalmemarq.bso.BSOType;
 import me.kalmemarq.bso.BSOTypes;
-import me.kalmemarq.bso.BSOUtils;
 
 public final class BSOInt extends AbstractBSONumber {
     private final int value;
