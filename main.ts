@@ -1,5 +1,6 @@
 import { BufferReader } from './BufferReader.ts';
 import { BufferWriter } from './BufferWriter.ts';
+import { gunzip, gzip } from './deps.ts';
 
 const BSOTypes = {
   BYTE: 'Byte',
@@ -339,11 +340,17 @@ function writeBSOElement(output: BufferWriter, element: BSOElement) {
   }
 }
 
-function writeBSO(element: BSOElement) {
+function writeBSO(element: BSOElement, options?: { compress?: boolean; compressionLevel?: number }) {
   const output = new BufferWriter();
 
   output.writeByte(BSOTypeIDs[element.type] + getElementAdditionalData(element));
   writeBSOElement(output, element);
+
+  if (options?.compress) {
+    return gzip(output.finish(), {
+      level: options?.compressionLevel
+    });
+  }
 
   return output.finish();
 }
@@ -745,8 +752,8 @@ function readBSOElement(input: BufferReader, type: BSOType, additionalData: numb
   }
 }
 
-function readBSO(data: Uint8Array, showSus?: boolean) {
-  const input = new BufferReader(data);
+function readBSO(data: Uint8Array, compressed?: boolean, showSus?: boolean) {
+  const input = new BufferReader(compressed ? gunzip(data) : data);
   const id = input.readByte();
   const element = readBSOElement(input, BSOIDsType[id & 0x0f], id & 0xf0);
   if (showSus && !input.isFullyRead()) {
