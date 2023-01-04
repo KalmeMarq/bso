@@ -55,6 +55,29 @@ export class BufferReader {
 
   public readUTF() {
     const len = this.readUShort();
+
+    let str = '';
+
+    for (let i = 0; i < len; i++) {
+      str += String.fromCharCode(this.readUByte());
+    }
+
+    return str;
+  }
+
+  public readVarUTF(type: 'ubyte' | 'ushort' | 'none' = 'ushort') {
+    if (type === 'none') {
+      let str = '';
+
+      let b = 0;
+      while ((b = this.readUByte()) != 0) {
+        str += String.fromCharCode(b);
+      }
+
+      return str;
+    }
+
+    const len = type === 'ushort' ? this.readUShort() : this.readUByte();
     let str = '';
 
     for (let i = 0; i < len; i++) {
@@ -81,5 +104,9 @@ export class BufferReader {
     }
 
     return str;
+  }
+
+  public getRemainingData() {
+    return this.data.subarray(this.cursor);
   }
 }

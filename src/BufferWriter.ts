@@ -68,6 +68,15 @@ export class BufferWriter {
     }
   }
 
+  public writeVarUTF(value: string, type: 'ubyte' | 'ushort' | 'none' = 'ushort') {
+    if (type === 'ushort') this.writeUShort(value.length);
+    else if (type === 'ubyte') this.writeUByte(value.length);
+
+    for (let i = 0; i < value.length; i++) {
+      this.writeByte(value.charCodeAt(i));
+    }
+  }
+
   public setCursor(offset: number) {
     this.cursor = offset;
   }

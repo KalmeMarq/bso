@@ -12,7 +12,7 @@ Optionally, they can also have an indefinite length. Map uses it by default.
 
 I was trying to also allow different length types for strings. When I was doing that, in my head, I was thinking the default (short) was just length of 255 (but it's actually 65535). I'm dumb :/. I'll still added it bc for the most part, for my projects where I'll use this, most strings won't have a bigger length than 255.
 
-A BSO type can have ddditional data which allows to save bytes as much as possible.
+A BSO type can have addditional data which allows to save bytes as much as possible.
 
 ## Types
 
@@ -56,6 +56,19 @@ A type can have additional data that will change how it is read.
   - 0x20 Write/Read list length as int
   - 0x30 Indefinite length
 
+### String (Only available with this TS lib version)
+
+  - 0x00 Write/Read string length as unsigned short
+  - 0x10 Write/Read string length as unsigned byte
+  - 0x20 Read string until it reaches \0
+
+Map keys can also use this but they have their own option because... I'm getting crazy with this stuff :(
+
 ## Extra
 
-There's also a StringBSOWriter that write BSO to a string format and BSOJsonWriter that writes it as a json (stringified).
+  - writeBSO - serialize
+  - bsoToJson - bso to json
+  - bsoToSBSO - bso to string bso
+  - readBSO - deserialize
+  - readSBSO - parse string bso
+  - `deno run -A main.ts <bsofilepath> [--indent]` - read the bso file and shows it as sbso (+ansi) and with the indent flag being optional
