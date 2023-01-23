@@ -28,6 +28,10 @@ public final class BSOList extends AbstractBSOList<BSOElement> {
         return this.type;
     }
 
+    public List<BSOElement> getValues() {
+        return values;
+    }
+
     @Override
     public void write(DataOutput output) throws IOException {
         this.type = this.values.isEmpty() ? BSOTypes.NULL.getId(): this.values.get(0).getTypeId();

@@ -59,3 +59,5 @@ A type can have additional data that will change how it is read.
 ## Extra
 
 There's also a StringBSOWriter that write BSO to a string format and BSOJsonWriter that writes it as a json (stringified).
+
+Both writers allow to set the indentation and style (minify, spaced minify and beautify).

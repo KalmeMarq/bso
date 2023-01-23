@@ -1,8 +1,11 @@
 BSO
 
-[x] BSO
 [x] BSO to SBSO
+    [x] Minify
+    [ ] Pretty
 [x] BSO to JSON (string)
+    [x] Minify
+    [ ] Pretty
 [ ] SBSO to BSO
 
 Main Types

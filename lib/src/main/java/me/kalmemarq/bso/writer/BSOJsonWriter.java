@@ -1,7 +1,9 @@
 package me.kalmemarq.bso.writer;
 
 import java.util.Map;
+import java.util.Set;
 
+import com.google.common.base.Strings;
 import me.kalmemarq.bso.BSOByteArray;
 import me.kalmemarq.bso.BSODoubleArray;
 import me.kalmemarq.bso.BSOElement;
@@ -19,15 +21,38 @@ import me.kalmemarq.bso.number.BSOFloat;
 import me.kalmemarq.bso.number.BSOInt;
 import me.kalmemarq.bso.number.BSOLong;
 import me.kalmemarq.bso.number.BSOShort;
+import org.apache.commons.math3.exception.OutOfRangeException;
 
 public class BSOJsonWriter implements BSOElement.Visitor {
-    private StringBuilder output = new StringBuilder();
+    private final StringBuilder output = new StringBuilder();
+    private WriteStyle style = WriteStyle.MINIFY;
+    private int indent = 2;
+    private int level;
+
+    private BSOJsonWriter(int level, WriteStyle style, int indent) {
+        this.level = level;
+        this.indent = indent;
+        this.style = style;
+    }
+
+    public BSOJsonWriter() {
+    }
 
     public String apply(BSOElement element) {
         element.accept(this);
         String result = this.output.toString();
         this.output.delete(0, this.output.length());
         return result;
+    }
+
+    public BSOJsonWriter setWriteStyle(WriteStyle style) {
+        this.style = style;
+        return this;
+    }
+
+    public BSOJsonWriter setIndent(int indent) {
+        this.indent = Math.max(indent, 0);
+        return this;
     }
 
     @Override
@@ -72,14 +97,50 @@ public class BSOJsonWriter implements BSOElement.Visitor {
 
     @Override
     public void visitMap(BSOMap element) {
-        output.append("{");
+        output.append('{');
+
+        if (style == WriteStyle.BEAUTIFY) {
+            output.append("\n");
+        } else if (style == WriteStyle.SPACED_MINIFY) {
+            output.append(' ');
+        }
+
         int i = 0;
         for (Map.Entry<String, BSOElement> entry : element.entries()) {
-            if (i != 0) output.append(",");
-            output.append('"').append(entry.getKey()).append('"').append(':').append(new BSOJsonWriter().apply(entry.getValue()));
+            if (style == WriteStyle.BEAUTIFY) {
+                output.append(Strings.repeat(" ", (this.level + 1) * this.indent));
+            }
+
+            output.append('"').append(entry.getKey()).append('"');
+
+            if (style != WriteStyle.MINIFY) {
+                output.append(": ");
+            } else {
+                output.append(":");
+            }
+
+            output.append(new BSOJsonWriter(this.level + 1, this.style, this.indent).apply(entry.getValue()));
+
+            if (i + 1 < element.size()) {
+                output.append(",");
+
+                if (style == WriteStyle.SPACED_MINIFY) {
+                    output.append(' ');
+                } else if (style == WriteStyle.BEAUTIFY) {
+                    output.append('\n');
+                }
+            }
+
             ++i;
         }
-        output.append("}");
+
+        if (style == WriteStyle.BEAUTIFY) {
+            output.append('\n').append(Strings.repeat(" ", this.level * this.indent));
+        } else if (style == WriteStyle.SPACED_MINIFY) {
+            output.append(' ');
+        }
+
+        output.append('}');
     }
 
     @Override
@@ -91,11 +152,20 @@ public class BSOJsonWriter implements BSOElement.Visitor {
     @Override
     public void visitByteArray(BSOByteArray element) {
         output.append("[");
+
         byte[] vls = element.getByteArray();
         for (int i = 0; i < vls.length; i++) {
-            if (i != 0) output.append(",");
             output.append(vls[i]);
+
+            if (i + 1 < vls.length) {
+                output.append(',');
+
+                if (style != WriteStyle.MINIFY) {
+                    output.append(' ');
+                }
+            }
         }
+
         output.append("]");
     }
 
@@ -104,8 +174,15 @@ public class BSOJsonWriter implements BSOElement.Visitor {
         output.append("[");
         short[] vls = element.getShortArray();
         for (int i = 0; i < vls.length; i++) {
-            if (i != 0) output.append(",");
             output.append(vls[i]);
+
+            if (i + 1 < vls.length) {
+                output.append(',');
+
+                if (style != WriteStyle.MINIFY) {
+                    output.append(' ');
+                }
+            }
         }
         output.append("]");
     }
@@ -115,8 +192,15 @@ public class BSOJsonWriter implements BSOElement.Visitor {
         output.append("[");
         int[] vls = element.getIntArray();
         for (int i = 0; i < vls.length; i++) {
-            if (i != 0) output.append(",");
             output.append(vls[i]);
+
+            if (i + 1 < vls.length) {
+                output.append(',');
+
+                if (style != WriteStyle.MINIFY) {
+                    output.append(' ');
+                }
+            }
         }
         output.append("]");
     }
@@ -126,8 +210,15 @@ public class BSOJsonWriter implements BSOElement.Visitor {
         output.append("[");
         long[] vls = element.getLongArray();
         for (int i = 0; i < vls.length; i++) {
-            if (i != 0) output.append(",");
             output.append(vls[i]);
+
+            if (i + 1 < vls.length) {
+                output.append(',');
+
+                if (style != WriteStyle.MINIFY) {
+                    output.append(' ');
+                }
+            }
         }
         output.append("]");
     }
@@ -137,8 +228,15 @@ public class BSOJsonWriter implements BSOElement.Visitor {
         output.append("[");
         float[] vls = element.getFloatArray();
         for (int i = 0; i < vls.length; i++) {
-            if (i != 0) output.append(",");
             output.append(vls[i]);
+
+            if (i + 1 < vls.length) {
+                output.append(',');
+
+                if (style != WriteStyle.MINIFY) {
+                    output.append(' ');
+                }
+            }
         }
         output.append("]");
     }
@@ -148,8 +246,15 @@ public class BSOJsonWriter implements BSOElement.Visitor {
         output.append("[");
         double[] vls = element.getDoubleArray();
         for (int i = 0; i < vls.length; i++) {
-            if (i != 0) output.append(",");
             output.append(vls[i]);
+
+            if (i + 1 < vls.length) {
+                output.append(',');
+
+                if (style != WriteStyle.MINIFY) {
+                    output.append(' ');
+                }
+            }
         }
         output.append("]");
     }

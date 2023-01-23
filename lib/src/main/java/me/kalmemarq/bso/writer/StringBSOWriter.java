@@ -2,6 +2,7 @@ package me.kalmemarq.bso.writer;
 
 import java.util.Map;
 
+import com.google.common.base.Strings;
 import me.kalmemarq.bso.BSOByteArray;
 import me.kalmemarq.bso.BSODoubleArray;
 import me.kalmemarq.bso.BSOElement;
@@ -22,29 +23,34 @@ import me.kalmemarq.bso.number.BSOShort;
 
 public class StringBSOWriter implements BSOElement.Visitor {
     private StringBuilder output = new StringBuilder();
-    // private final WriteStyle style;
-    // private final int indent;
-    // private int indentLevel;
+    private WriteStyle style = WriteStyle.MINIFY;
+    private int indent = 2;
+    private int level;
 
-    public StringBSOWriter() {
-        // this(WriteStyle.MINIFY);
+    private StringBSOWriter(int level, WriteStyle style, int indent) {
+        this.level = level;
+        this.indent = indent;
+        this.style = style;
     }
 
-    // public BSOStringWriter(WriteStyle style) {
-    //     this(style, 2);
-    // }
-
-    // public BSOStringWriter(WriteStyle style, int indent) {
-    //     this.style = style;
-    //     this.indent = indent;
-    // }
+    public StringBSOWriter() {
+    }
 
     public String apply(BSOElement element) {
         element.accept(this);
         String result = this.output.toString();
-        // this.indentLevel = 0;
         this.output.delete(0, this.output.length()); // Might need to check if delete() is better than a new allocation
         return result;
+    }
+
+    public StringBSOWriter setWriteStyle(WriteStyle style) {
+        this.style = style;
+        return this;
+    }
+
+    public StringBSOWriter setIndent(int indent) {
+        this.indent = Math.max(indent, 0);
+        return this;
     }
 
     @Override
@@ -79,8 +85,7 @@ public class StringBSOWriter implements BSOElement.Visitor {
 
     @Override
     public void visitDouble(BSODouble element) {
-        element.getValue();
-        output.append("").append("d");
+        output.append(element.getValue()).append("d");
     }
 
     @Override
@@ -91,12 +96,48 @@ public class StringBSOWriter implements BSOElement.Visitor {
     @Override
     public void visitMap(BSOMap element) {
         output.append("{");
+
+        if (style == WriteStyle.BEAUTIFY) {
+            output.append("\n");
+        } else if (style == WriteStyle.SPACED_MINIFY) {
+            output.append(' ');
+        }
+
         int i = 0;
         for (Map.Entry<String, BSOElement> entry : element.entries()) {
-            if (i != 0) output.append(",");
-            output.append(entry.getKey()).append(':').append(new StringBSOWriter().apply(entry.getValue()));
+            if (style == WriteStyle.BEAUTIFY) {
+                output.append(Strings.repeat(" ", (this.level + 1) * this.indent));
+            }
+
+            output.append(entry.getKey());
+
+            if (style != WriteStyle.MINIFY) {
+                output.append(": ");
+            } else {
+                output.append(":");
+            }
+
+            output.append(new StringBSOWriter(this.level + 1, this.style, this.indent).apply(entry.getValue()));
+
+            if (i + 1 < element.size()) {
+                output.append(",");
+
+                if (style == WriteStyle.SPACED_MINIFY) {
+                    output.append(' ');
+                } else if (style == WriteStyle.BEAUTIFY) {
+                    output.append('\n');
+                }
+            }
+
             ++i;
         }
+
+        if (style == WriteStyle.BEAUTIFY) {
+            output.append('\n').append(Strings.repeat(" ", this.level * this.indent));
+        } else if (style == WriteStyle.SPACED_MINIFY) {
+            output.append(' ');
+        }
+
         output.append("}");
     }
 
@@ -111,8 +152,15 @@ public class StringBSOWriter implements BSOElement.Visitor {
         output.append("[B;");
         byte[] vls = element.getByteArray();
         for (int i = 0; i < vls.length; i++) {
-            if (i != 0) output.append(",");
             output.append(vls[i]);
+
+            if (i + 1 < vls.length) {
+                output.append(',');
+
+                if (style != WriteStyle.MINIFY) {
+                    output.append(' ');
+                }
+            }
         }
         output.append("]");
     }
@@ -122,8 +170,15 @@ public class StringBSOWriter implements BSOElement.Visitor {
         output.append("[S;");
         short[] vls = element.getShortArray();
         for (int i = 0; i < vls.length; i++) {
-            if (i != 0) output.append(",");
             output.append(vls[i]);
+
+            if (i + 1 < vls.length) {
+                output.append(',');
+
+                if (style != WriteStyle.MINIFY) {
+                    output.append(' ');
+                }
+            }
         }
         output.append("]");
     }
@@ -133,8 +188,15 @@ public class StringBSOWriter implements BSOElement.Visitor {
         output.append("[I;");
         int[] vls = element.getIntArray();
         for (int i = 0; i < vls.length; i++) {
-            if (i != 0) output.append(",");
             output.append(vls[i]);
+
+            if (i + 1 < vls.length) {
+                output.append(',');
+
+                if (style != WriteStyle.MINIFY) {
+                    output.append(' ');
+                }
+            }
         }
         output.append("]");
     }
@@ -144,8 +206,15 @@ public class StringBSOWriter implements BSOElement.Visitor {
         output.append("[L;");
         long[] vls = element.getLongArray();
         for (int i = 0; i < vls.length; i++) {
-            if (i != 0) output.append(",");
             output.append(vls[i]);
+
+            if (i + 1 < vls.length) {
+                output.append(',');
+
+                if (style != WriteStyle.MINIFY) {
+                    output.append(' ');
+                }
+            }
         }
         output.append("]");
     }
@@ -155,8 +224,15 @@ public class StringBSOWriter implements BSOElement.Visitor {
         output.append("[L;");
         float[] vls = element.getFloatArray();
         for (int i = 0; i < vls.length; i++) {
-            if (i != 0) output.append(",");
             output.append(vls[i]);
+
+            if (i + 1 < vls.length) {
+                output.append(',');
+
+                if (style != WriteStyle.MINIFY) {
+                    output.append(' ');
+                }
+            }
         }
         output.append("]");
     }
@@ -166,14 +242,16 @@ public class StringBSOWriter implements BSOElement.Visitor {
         output.append("[D;");
         double[] vls = element.getDoubleArray();
         for (int i = 0; i < vls.length; i++) {
-            if (i != 0) output.append(",");
             output.append(vls[i]);
+
+            if (i + 1 < vls.length) {
+                output.append(',');
+
+                if (style != WriteStyle.MINIFY) {
+                    output.append(' ');
+                }
+            }
         }
         output.append("]");
     }
-
-    // public static enum WriteStyle {
-    //     MINIFY,
-    //     BEUTIFY;
-    // }
 }
