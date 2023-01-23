@@ -20,8 +20,8 @@ import me.kalmemarq.bso.number.BSOLong;
 import me.kalmemarq.bso.number.BSOShort;
 
 public class BSOMap implements BSOElement {
-    private final Map<String, BSOElement> entries;
-    private boolean indefiniteLength = true;
+    protected final Map<String, BSOElement> entries;
+    protected boolean indefiniteLength = true;
 
     public BSOMap() {
         this(new HashMap<>());

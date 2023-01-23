@@ -221,7 +221,7 @@ public class StringBSOWriter implements BSOElement.Visitor {
 
     @Override
     public void visitFloatArray(BSOFloatArray element) {
-        output.append("[L;");
+        output.append("[F;");
         float[] vls = element.getFloatArray();
         for (int i = 0; i < vls.length; i++) {
             output.append(vls[i]);

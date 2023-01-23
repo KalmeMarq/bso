@@ -29,7 +29,7 @@ public final class BSOLong extends AbstractBSONumber {
         } else if (this.value <= Short.MAX_VALUE) {
             output.writeShort((int)(this.value & 0xFFFFL));
         } else if (this.value <= Integer.MAX_VALUE) {
-            output.writeInt((int)(this.value & 0xFFFFFFFFFFFFFFFFL));
+            output.writeInt((int)(this.value & 0xFFFFFFFFL));
         } else {
             output.writeLong(this.value);
         }

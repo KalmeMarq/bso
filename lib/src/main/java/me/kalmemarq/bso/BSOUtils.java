@@ -85,6 +85,16 @@ public class BSOUtils {
         }
     }
 
+    protected static void writeLength(BSOBufWriter writer, int length) throws IOException {
+        if (length <= Byte.MAX_VALUE * 2 + 1) {
+            writer.writeBEByte((byte) length);
+        } else if (length <= Short.MAX_VALUE * 2 + 1) {
+            writer.writeBEShort((short) length);
+        } else {
+            writer.writeBEInt(length);
+        }
+    }
+
     protected static int lengthAdditionalData(int length, boolean indefiniteLength) {
         if (indefiniteLength) return INDEFINITE_LENGTH;
         if (length <= Byte.MAX_VALUE * 2 + 1) {

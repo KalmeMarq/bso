@@ -6,9 +6,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-public final class BSOList extends AbstractBSOList<BSOElement> {
-    private final List<BSOElement> values;
-    private byte type = BSOTypes.NULL.getId();
+public class BSOList extends AbstractBSOList<BSOElement> {
+    protected final List<BSOElement> values;
+    protected byte type = BSOTypes.NULL.getId();
 
     public BSOList() {
         this(new ArrayList<>());
