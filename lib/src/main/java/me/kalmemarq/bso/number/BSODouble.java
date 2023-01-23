@@ -32,6 +32,36 @@ public final class BSODouble extends AbstractBSONumber {
     }
 
     @Override
+    public byte byteValue() {
+        return (byte) (floor(this.value) & 0xFF);
+    }
+
+    @Override
+    public short shortValue() {
+        return (short) (floor(this.value) & 0xFFFF);
+    }
+
+    @Override
+    public int intValue() {
+        return floor(this.value);
+    }
+
+    @Override
+    public long longValue() {
+        return (long) this.value;
+    }
+
+    @Override
+    public float floatValue() {
+        return (float) this.value;
+    }
+
+    @Override
+    public double doubleValue() {
+        return this.value;
+    }
+
+    @Override
     public Number numberValue() {
         return this.value;
     }

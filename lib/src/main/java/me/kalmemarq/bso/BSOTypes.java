@@ -12,7 +12,7 @@ import me.kalmemarq.bso.number.BSOInt;
 import me.kalmemarq.bso.number.BSOLong;
 import me.kalmemarq.bso.number.BSOShort;
 
-public final class BSOTypes {
+public class BSOTypes {
     protected static final Map<Byte, BSOType<?>> TYPES = new HashMap<>();
 
     public static final BSOType<BSONull> NULL = new BSOType<>(BSOElement.NULL_TYPE_ID) {
@@ -122,7 +122,7 @@ public final class BSOTypes {
         @Override
         public BSOByteArray read(DataInput input, int additionalData) throws IOException {
             if (additionalData == BSOUtils.INDEFINITE_LENGTH) {
-                byte[] vls = new byte[65535];
+                byte[] vls = new byte[0xFFF];
                 int i = 0;
 
                 byte b;
@@ -156,7 +156,7 @@ public final class BSOTypes {
         @Override
         public BSOShortArray read(DataInput input, int additionalData) throws IOException {
             if (additionalData == BSOUtils.INDEFINITE_LENGTH) {
-                short[] vls = new short[65535];
+                short[] vls = new short[0xFFF];
                 int i = 0;
 
                 short b;
@@ -190,7 +190,7 @@ public final class BSOTypes {
         @Override
         public BSOIntArray read(DataInput input, int additionalData) throws IOException {
             if (additionalData == BSOUtils.INDEFINITE_LENGTH) {
-                int[] vls = new int[65535];
+                int[] vls = new int[0xFFF];
                 int i = 0;
 
                 int b;
@@ -224,7 +224,7 @@ public final class BSOTypes {
         @Override
         public BSOLongArray read(DataInput input, int additionalData) throws IOException {
             if (additionalData == BSOUtils.INDEFINITE_LENGTH) {
-                long[] vls = new long[65535];
+                long[] vls = new long[0xFFF];
                 int i = 0;
 
                 long b;
@@ -258,7 +258,7 @@ public final class BSOTypes {
         @Override
         public BSOFloatArray read(DataInput input, int additionalData) throws IOException {
             if (additionalData == BSOUtils.INDEFINITE_LENGTH) {
-                float[] vls = new float[65535];
+                float[] vls = new float[0xFFF];
                 int i = 0;
 
                 float b;
@@ -292,7 +292,7 @@ public final class BSOTypes {
         @Override
         public BSODoubleArray read(DataInput input, int additionalData) throws IOException {
             if (additionalData == BSOUtils.INDEFINITE_LENGTH) {
-                double[] vls = new double[65535];
+                double[] vls = new double[0xFFF];
                 int i = 0;
 
                 double b;

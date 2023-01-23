@@ -22,7 +22,7 @@ import me.kalmemarq.bso.number.BSOLong;
 import me.kalmemarq.bso.number.BSOShort;
 
 public class StringBSOWriter implements BSOElement.Visitor {
-    private StringBuilder output = new StringBuilder();
+    private final StringBuilder output = new StringBuilder();
     private WriteStyle style = WriteStyle.MINIFY;
     private int indent = 2;
     private int level;

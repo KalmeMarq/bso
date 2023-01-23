@@ -1,7 +1,6 @@
 package me.kalmemarq.bso.writer;
 
 import java.util.Map;
-import java.util.Set;
 
 import com.google.common.base.Strings;
 import me.kalmemarq.bso.BSOByteArray;
@@ -21,7 +20,6 @@ import me.kalmemarq.bso.number.BSOFloat;
 import me.kalmemarq.bso.number.BSOInt;
 import me.kalmemarq.bso.number.BSOLong;
 import me.kalmemarq.bso.number.BSOShort;
-import org.apache.commons.math3.exception.OutOfRangeException;
 
 public class BSOJsonWriter implements BSOElement.Visitor {
     private final StringBuilder output = new StringBuilder();

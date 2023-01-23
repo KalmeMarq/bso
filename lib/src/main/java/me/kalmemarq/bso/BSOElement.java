@@ -12,47 +12,47 @@ import me.kalmemarq.bso.number.BSOShort;
 import me.kalmemarq.bso.writer.StringBSOWriter;
 
 public interface BSOElement {
-    static final byte NULL_TYPE_ID = 0x00;
-    static final byte BYTE_TYPE_ID = 0x01;
-    static final byte SHORT_TYPE_ID = 0x02;
-    static final byte INT_TYPE_ID = 0x03;
-    static final byte LONG_TYPE_ID = 0x04;
-    static final byte FLOAT_TYPE_ID = 0x05;
-    static final byte DOUBLE_TYPE_ID = 0x06;
-    static final byte STRING_TYPE_ID = 0x07;
-    static final byte MAP_TYPE_ID = 0x08;
-    static final byte LIST_TYPE_ID = 0x09;
-    static final byte BYTE_ARRAY_TYPE_ID = 0x0A;
-    static final byte SHORT_ARRAY_TYPE_ID = 0x0B;
-    static final byte INT_ARRAY_TYPE_ID = 0x0C;
-    static final byte LONG_ARRAY_TYPE_ID = 0x0D;
-    static final byte FLOAT_ARRAY_TYPE_ID = 0x0E;
-    static final byte DOUBLE_ARRAY_TYPE_ID = 0x0F;
-    static final byte END_TYPE_ID = 0x10;
+    byte NULL_TYPE_ID = 0x00;
+    byte BYTE_TYPE_ID = 0x01;
+    byte SHORT_TYPE_ID = 0x02;
+    byte INT_TYPE_ID = 0x03;
+    byte LONG_TYPE_ID = 0x04;
+    byte FLOAT_TYPE_ID = 0x05;
+    byte DOUBLE_TYPE_ID = 0x06;
+    byte STRING_TYPE_ID = 0x07;
+    byte MAP_TYPE_ID = 0x08;
+    byte LIST_TYPE_ID = 0x09;
+    byte BYTE_ARRAY_TYPE_ID = 0x0A;
+    byte SHORT_ARRAY_TYPE_ID = 0x0B;
+    byte INT_ARRAY_TYPE_ID = 0x0C;
+    byte LONG_ARRAY_TYPE_ID = 0x0D;
+    byte FLOAT_ARRAY_TYPE_ID = 0x0E;
+    byte DOUBLE_ARRAY_TYPE_ID = 0x0F;
+    byte END_TYPE_ID = 0x10;
 
-    default public byte getTypeId() {
+    default byte getTypeId() {
         return this.getType().getId();
     }
 
-    public BSOType<?> getType();
+    BSOType<?> getType();
     
-    public void write(DataOutput output) throws IOException;
+    void write(DataOutput output) throws IOException;
 
-    default public int getAdditionalData() {
+    default int getAdditionalData() {
         return 0;
     }
 
-    public void accept(Visitor visitor);
+    void accept(Visitor visitor);
 
-    public BSOElement copy();
+    BSOElement copy();
 
-    public String toString();
+    String toString();
 
-    default public String asString() {
+    default String asString() {
         return new StringBSOWriter().apply(this);
     }
 
-    public interface Visitor {
+    interface Visitor {
         void visitNull(BSONull element);
         void visitByte(BSOByte element);
         void visitShort(BSOShort element);

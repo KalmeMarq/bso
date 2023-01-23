@@ -3,7 +3,6 @@ package me.kalmemarq.bso.reader;
 import me.kalmemarq.bso.*;
 import me.kalmemarq.bso.number.*;
 
-import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
 

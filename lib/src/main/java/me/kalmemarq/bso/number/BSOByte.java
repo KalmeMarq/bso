@@ -39,6 +39,36 @@ public final class BSOByte extends AbstractBSONumber {
     }
 
     @Override
+    public byte byteValue() {
+        return this.value;
+    }
+
+    @Override
+    public short shortValue() {
+        return this.value;
+    }
+
+    @Override
+    public int intValue() {
+        return this.value;
+    }
+
+    @Override
+    public long longValue() {
+        return this.value;
+    }
+
+    @Override
+    public float floatValue() {
+        return this.value;
+    }
+
+    @Override
+    public double doubleValue() {
+        return this.value;
+    }
+
+    @Override
     public Number numberValue() {
         return this.value;
     }

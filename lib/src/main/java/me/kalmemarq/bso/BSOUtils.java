@@ -105,6 +105,7 @@ public class BSOUtils {
         return 0;
     }
 
+    // Not in use yet
     public static class BSOWriteOptions {
         public static final BSOWriteOptions DEFAULT = new BSOWriteOptions().withIndefiniteLength().withVarLength().withVarNum();
 

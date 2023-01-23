@@ -53,6 +53,36 @@ public final class BSOLong extends AbstractBSONumber {
     }
 
     @Override
+    public byte byteValue() {
+        return (byte) (this.value & 0xFFL);
+    }
+
+    @Override
+    public short shortValue() {
+        return (byte) (this.value & 0xFFFFL);
+    }
+
+    @Override
+    public int intValue() {
+        return (byte) (this.value & 0xFFFFFFFFL);
+    }
+
+    @Override
+    public long longValue() {
+        return this.value;
+    }
+
+    @Override
+    public float floatValue() {
+        return this.value;
+    }
+
+    @Override
+    public double doubleValue() {
+        return this.value;
+    }
+
+    @Override
     public Number numberValue() {
         return this.value;
     }
