@@ -24,11 +24,11 @@ public final class BSOLong extends AbstractBSONumber {
 
     @Override
     public void write(DataOutput output) throws IOException {
-        if (this.value <= Byte.MAX_VALUE) {
+        if (this.value <= Byte.MAX_VALUE && this.value >= Byte.MIN_VALUE) {
             output.writeByte((int)(this.value & 0xFFL));
-        } else if (this.value <= Short.MAX_VALUE) {
+        } else if (this.value <= Short.MAX_VALUE && this.value >= Short.MIN_VALUE) {
             output.writeShort((int)(this.value & 0xFFFFL));
-        } else if (this.value <= Integer.MAX_VALUE) {
+        } else if (this.value <= Integer.MAX_VALUE && this.value >= Integer.MIN_VALUE) {
             output.writeInt((int)(this.value & 0xFFFFFFFFL));
         } else {
             output.writeLong(this.value);
@@ -37,11 +37,11 @@ public final class BSOLong extends AbstractBSONumber {
 
     @Override
     public int getAdditionalData() {
-        if (this.value <= Byte.MAX_VALUE) {
+        if (this.value <= Byte.MAX_VALUE && this.value >= Byte.MIN_VALUE) {
             return VARNUM_BYTE;
-        } else if (this.value <= Short.MAX_VALUE) {
+        } else if (this.value <= Short.MAX_VALUE && this.value >= Short.MIN_VALUE) {
             return VARNUM_SHORT;
-        } else if (this.value <= Integer.MAX_VALUE) {
+        } else if (this.value <= Integer.MAX_VALUE && this.value >= Integer.MIN_VALUE) {
             return VARNUM_INT;
         }
 

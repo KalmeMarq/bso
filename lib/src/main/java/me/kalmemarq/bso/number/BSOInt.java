@@ -24,9 +24,9 @@ public final class BSOInt extends AbstractBSONumber {
 
     @Override
     public void write(DataOutput output) throws IOException {
-        if (this.value <= Byte.MAX_VALUE) {
+        if (this.value <= Byte.MAX_VALUE && this.value >= Byte.MIN_VALUE) {
             output.writeByte((int)(this.value & 0xFF));
-        } else if (this.value <= Short.MAX_VALUE) {
+        } else if (this.value <= Short.MAX_VALUE && this.value >= Short.MIN_VALUE) {
             output.writeShort((int)(this.value & 0xFFFF));
         } else {
             output.writeInt(this.value);
@@ -35,9 +35,9 @@ public final class BSOInt extends AbstractBSONumber {
 
     @Override
     public int getAdditionalData() {
-        if (this.value <= Byte.MAX_VALUE) {
+        if (this.value <= Byte.MAX_VALUE && this.value >= Byte.MIN_VALUE) {
             return VARNUM_BYTE;
-        } else if (this.value <= Short.MAX_VALUE) {
+        } else if (this.value <= Short.MAX_VALUE && this.value >= Short.MIN_VALUE) {
             return VARNUM_SHORT;
         }
 
