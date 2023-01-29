@@ -2,7 +2,7 @@
 
 Languages:
   - Java (Branch: [master](https://github.com/KalmeMarq/bso/tree/master))
-  - Typescript (Branch: [deno](https://github.com/KalmeMarq/bso/tree/deno))
+  - Typescript (Branch: [deno](https://github.com/KalmeMarq/bso/tree/deno)) (not up to date)
 
 I wanted to make my own json binary thing, so I looked at NBT, BSON and CBOR to see what they were up to. It's simple like NBT but I wanted to see what other stuff I could add.
 
@@ -178,7 +178,6 @@ TAG_ByteArray (ID 0x0A)
     - as unsigned short if it's in the range
     - otherwise as int
   - write byte values
-  - if it's indefinite length, write TAG_End
 
 TAG_ShortArray (ID 0x0B)
   - write byte (ADDITIONAL DATA + ID)
@@ -191,7 +190,6 @@ TAG_ShortArray (ID 0x0B)
     - as unsigned short if it's in the range
     - otherwise as int
   - write short values
-  - if it's indefinite length, write TAG_End
 
 TAG_IntArray (ID 0x0C)
   - write byte (ADDITIONAL DATA + ID)
@@ -204,7 +202,6 @@ TAG_IntArray (ID 0x0C)
     - as unsigned short if it's in the range
     - otherwise as int
   - write int values
-  - if it's indefinite length, write TAG_End
 
 TAG_LongArray (ID 0x0D)
   - write byte (ADDITIONAL DATA + ID)
@@ -217,7 +214,6 @@ TAG_LongArray (ID 0x0D)
     - as unsigned short if it's in the range
     - otherwise as int
   - write long values
-  - if it's indefinite length, write TAG_End
 
 TAG_FloatArray (ID 0x0E)
   - write byte (ADDITIONAL DATA + ID)
@@ -230,7 +226,6 @@ TAG_FloatArray (ID 0x0E)
     - as unsigned short if it's in the range
     - otherwise as int
   - write float values
-  - if it's indefinite length, write TAG_End
 
 TAG_DoubleArray (ID 0x0F)
   - write byte (ADDITIONAL DATA + ID)
@@ -243,7 +238,6 @@ TAG_DoubleArray (ID 0x0F)
     - as unsigned short if it's in the range
     - otherwise as int
   - write double values
-  - if it's indefinite length, write TAG_End
 
 TAG_End (ID 0x10)
   - write byte (ID)
