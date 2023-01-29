@@ -160,7 +160,7 @@ public class BSOMap implements BSOElement {
         this.entries.put(key, BSOByteArray.of(value));
     }
 
-    public void putShortArray(String key, short[] value) {
+    public void put(String key, short[] value) {
         this.entries.put(key, BSOShortArray.of(value));
     }
 
@@ -168,7 +168,7 @@ public class BSOMap implements BSOElement {
         this.entries.put(key, BSOShortArray.of(value));
     }
     
-    public void putIntArray(String key, int[] value) {
+    public void put(String key, int[] value) {
         this.entries.put(key, BSOIntArray.of(value));
     }
 
@@ -176,7 +176,7 @@ public class BSOMap implements BSOElement {
         this.entries.put(key, BSOIntArray.of(value));
     }
     
-    public void putLongArray(String key, long[] value) {
+    public void put(String key, long[] value) {
         this.entries.put(key, BSOLongArray.of(value));
     }
 
@@ -184,7 +184,7 @@ public class BSOMap implements BSOElement {
         this.entries.put(key, BSOLongArray.of(value));
     }
 
-    public void putFloatArray(String key, float[] value) {
+    public void put(String key, float[] value) {
         this.entries.put(key, BSOFloatArray.of(value));
     }
 
@@ -192,7 +192,7 @@ public class BSOMap implements BSOElement {
         this.entries.put(key, BSOFloatArray.of(value));
     }
 
-    public void putDoubleArray(String key, double[] value) {
+    public void put(String key, double[] value) {
         this.entries.put(key, BSODoubleArray.of(value));
     }
 

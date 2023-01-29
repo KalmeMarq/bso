@@ -11,3 +11,5 @@ build
 bin
 
 .idea
+
+**/src/main/java/me/kalmemarq/bso/Main.java

@@ -39,21 +39,30 @@ public class BSOUtils {
         element.write(outputStream);
     }
 
-    public static BSOMap read(File file) throws IOException {
+    public static BSOMap read(File file) throws IOException, ClassCastException {
+        return (BSOMap) readBSO(file);
+    }
+
+    public static BSOMap readCompressed(File file) throws IOException, ClassCastException {
+        return (BSOMap) readBSOCompressed(file);
+    }
+
+    public static BSOElement readBSO(File file) throws IOException {
         try (FileInputStream inputStream = new FileInputStream(file); DataInputStream dataInputStream = new DataInputStream(inputStream)) {
             return read(dataInputStream);
         }
     }
 
-    public static BSOMap readCompressed(File file) throws IOException {
+    public static BSOElement readBSOCompressed(File file) throws IOException {
         try (FileInputStream inputStream = new FileInputStream(file); DataInputStream dataInputStream = new DataInputStream(new BufferedInputStream(new GZIPInputStream(inputStream)))) {
             return read(dataInputStream);
         }
     }
 
-    private static BSOMap read(DataInput inputStream) throws IOException {
+    private static BSOElement read(DataInput inputStream) throws IOException {
         byte b = inputStream.readByte();
-        return BSOTypes.MAP.read(inputStream, (byte) (b & 0xF0));
+        BSOType<?> type = BSOTypes.byId((byte)(b & 0x0F));
+        return type.read(inputStream, (byte) (b & 0xF0));
     }
 
     protected static final int BYTE_LENGTH = 0x20;
@@ -102,7 +111,7 @@ public class BSOUtils {
         } else if (length <= Short.MAX_VALUE * 2 + 1) {
             return SHORT_LENGTH;
         }
-        return 0;
+        return INT_LENGTH;
     }
 
     // Not in use yet

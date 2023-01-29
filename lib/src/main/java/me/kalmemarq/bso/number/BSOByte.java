@@ -16,6 +16,10 @@ public final class BSOByte extends AbstractBSONumber {
         this.value = value;
     }
 
+    public static BSOByte of(int value) {
+        return Cache.get((byte)value);
+    }
+
     public static BSOByte of(byte value) {
         return Cache.get(value);
     }

@@ -1,10 +1,25 @@
 package me.kalmemarq.bso.reader;
 
-import me.kalmemarq.bso.*;
-import me.kalmemarq.bso.number.*;
-
 import java.util.ArrayList;
 import java.util.List;
+
+import me.kalmemarq.bso.BSOByteArray;
+import me.kalmemarq.bso.BSODoubleArray;
+import me.kalmemarq.bso.BSOElement;
+import me.kalmemarq.bso.BSOFloatArray;
+import me.kalmemarq.bso.BSOIntArray;
+import me.kalmemarq.bso.BSOList;
+import me.kalmemarq.bso.BSOLongArray;
+import me.kalmemarq.bso.BSOMap;
+import me.kalmemarq.bso.BSOShortArray;
+import me.kalmemarq.bso.BSOString;
+import me.kalmemarq.bso.BSOType;
+import me.kalmemarq.bso.number.BSOByte;
+import me.kalmemarq.bso.number.BSODouble;
+import me.kalmemarq.bso.number.BSOFloat;
+import me.kalmemarq.bso.number.BSOInt;
+import me.kalmemarq.bso.number.BSOLong;
+import me.kalmemarq.bso.number.BSOShort;
 
 public class StringBSOReader {
     private String data;
@@ -16,7 +31,12 @@ public class StringBSOReader {
     }
 
     public BSOMap read(String sbso) {
-        return (BSOMap) this.readSBSO(sbso);
+        BSOElement el = this.readSBSO(sbso);
+        try {
+            return (BSOMap) el;
+        } catch (ClassCastException e) {
+            throw new RuntimeException("Top level element must be BSOMap but found " + el.getType().getName());
+        }
     }
 
     public BSOElement readSBSO(String sbso) {
@@ -27,8 +47,8 @@ public class StringBSOReader {
         return this.readElement();
     }
 
-    private RuntimeException createErrorWithPos(String msg) {
-        return new RuntimeException(msg + String.format(" at %d:%d", line, column));
+    private RuntimeException createErrorWithPos(String msg, Object ...args) {
+        return new RuntimeException(String.format(msg, args) + String.format(" at %d:%d", line, column));
     }
 
     private boolean canRead() {
@@ -245,9 +265,11 @@ public class StringBSOReader {
             advance();
         }
 
+        int curEnd = this.cursor;
+
         advance();
 
-        return this.data.substring(curStart + 1, this.cursor - 1);
+        return this.data.substring(curStart + 1, curEnd);
     }
 
     private String readUQString() {
@@ -291,8 +313,6 @@ public class StringBSOReader {
             if (canRead()) {
                 if (currentChar() == ',') {
                     advance();
-                    skipWhitespace();
-
                     if (currentChar() == '}') {
                         throw createErrorWithPos("Trailing comma");
                     }
@@ -302,6 +322,8 @@ public class StringBSOReader {
             } else {
                 throw createErrorWithPos("Map ended badly");
             }
+
+            skipWhitespace();
         }
 
         expect('}');
@@ -313,6 +335,35 @@ public class StringBSOReader {
 
         expect('[');
         skipWhitespace();
+
+        BSOType<?> type = null;
+        while (canRead() && currentChar() != ']') {
+            BSOElement el = this.readElement();
+            if (type == null) {
+                type = el.getType();
+            } else if (type != el.getType()) {
+                throw createErrorWithPos("List can only contain a single type. Found element of type %s when list is of type %s", el.getType().getName(), type.getName());
+            }
+
+            list.add(el);
+
+            skipWhitespace();
+
+            if (canRead()) {
+                if (currentChar() == ',') {
+                    advance();
+                    skipWhitespace();
+
+                    if (currentChar() == ']') {
+                        throw createErrorWithPos("Trailing comma");
+                    }
+                } else if (currentChar() != ']') {
+                    throw createErrorWithPos("Missing comma");
+                }
+            } else {
+                throw createErrorWithPos("List ended badly");
+            }
+        }
 
         expect(']');
         return new BSOList(list);

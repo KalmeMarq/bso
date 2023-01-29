@@ -13,6 +13,10 @@ public final class BSOShort extends AbstractBSONumber {
         this.value = value;
     }
 
+    public static BSOShort of(int value) {
+        return Cache.get((short)value);
+    }
+
     public static BSOShort of(short value) {
         return Cache.get(value);
     }

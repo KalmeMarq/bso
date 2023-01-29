@@ -8,7 +8,7 @@ import java.util.Objects;
 
 public class BSOList extends AbstractBSOList<BSOElement> {
     protected final List<BSOElement> values;
-    protected byte type = BSOTypes.NULL.getId();
+    protected byte type = BSOElement.NULL_TYPE_ID;
 
     public BSOList() {
         this(new ArrayList<>());
@@ -34,16 +34,26 @@ public class BSOList extends AbstractBSOList<BSOElement> {
 
     @Override
     public void write(DataOutput output) throws IOException {
-        this.type = this.values.isEmpty() ? BSOTypes.NULL.getId(): this.values.get(0).getTypeId();
+        this.checkType();
 
-        output.writeByte(this.type);
         if (!indefiniteLength) BSOUtils.writeLength(output, this.values.size());
+        
+        if (this.values.size() > 0 || indefiniteLength) output.writeByte(this.type);
 
         for (BSOElement el : this.values) {
+            if (this.type == BSOElement.NULL_TYPE_ID) {
+                output.write(el.getTypeId() + el.getAdditionalData());
+            }
             el.write(output);
         }
 
         if (indefiniteLength) output.writeByte(END_TYPE_ID);
+    }
+
+    @Override
+    public int getAdditionalData() {
+        this.checkType();
+        return super.getAdditionalData() + (this.type == BSOElement.NULL_TYPE_ID && !indefiniteLength && this.values.size() > 0 ? 0x40 : 0x00);
     }
 
     @Override
@@ -73,6 +83,10 @@ public class BSOList extends AbstractBSOList<BSOElement> {
         this.values.add(index, element);
     }
 
+    public boolean addElement(BSOElement element) {
+        return this.values.add(element);
+    }
+
     @Override
     public BSOElement remove(int index) {
         BSOElement b = this.values.remove(index);
@@ -92,7 +106,20 @@ public class BSOList extends AbstractBSOList<BSOElement> {
     }
 
     private void checkType() {
-        if (this.values.isEmpty()) this.type = 0;
+        if (this.values.isEmpty()) this.type = BSOElement.NULL_TYPE_ID;
+        else {
+            this.type = BSOElement.NULL_TYPE_ID;
+            for (int i = 0; i < this.values.size(); i++) {
+                BSOElement el = this.values.get(i);
+
+                if (this.type == BSOElement.NULL_TYPE_ID) {
+                    this.type = el.getTypeId();
+                } else if (this.type != el.getTypeId()) {
+                    this.type = BSOElement.NULL_TYPE_ID;
+                    break;
+                }
+            }
+        }
     }
 
     @Override

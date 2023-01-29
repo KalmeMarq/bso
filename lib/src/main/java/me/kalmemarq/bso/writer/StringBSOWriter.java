@@ -1,8 +1,10 @@
 package me.kalmemarq.bso.writer;
 
+import java.util.List;
 import java.util.Map;
 
 import com.google.common.base.Strings;
+
 import me.kalmemarq.bso.BSOByteArray;
 import me.kalmemarq.bso.BSODoubleArray;
 import me.kalmemarq.bso.BSOElement;
@@ -144,6 +146,46 @@ public class StringBSOWriter implements BSOElement.Visitor {
     @Override
     public void visitList(BSOList element) {
         output.append('[');
+
+        int i = 0;
+        List<BSOElement> els = element.getValues();
+        boolean isAllPrimitive = true;
+
+        for (BSOElement el : els) {
+            if (el instanceof BSOMap || el instanceof BSOList) {
+                isAllPrimitive = false;
+                break;
+            }
+        }
+
+        if (!isAllPrimitive && style == WriteStyle.BEAUTIFY) {
+            output.append('\n');
+        }
+
+        for (BSOElement el : els) {
+            if (style == WriteStyle.BEAUTIFY && !isAllPrimitive) {
+                output.append(Strings.repeat(" ", (this.level + 1) * this.indent));
+            }
+
+            output.append(new StringBSOWriter(this.level + 1, this.style, this.indent).apply(el));
+
+            if (i + 1 < els.size()) {
+                output.append(',');
+
+                if (style == WriteStyle.SPACED_MINIFY) {
+                    output.append(' ');
+                } else if (style == WriteStyle.BEAUTIFY) {
+                    output.append(isAllPrimitive ? ' ' : '\n');
+                }
+            }
+            ++i;
+        }
+
+        
+        if (style == WriteStyle.BEAUTIFY && !isAllPrimitive) {
+            output.append('\n').append(Strings.repeat(" ", this.level * this.indent));
+        }
+
         output.append(']');
     }
 

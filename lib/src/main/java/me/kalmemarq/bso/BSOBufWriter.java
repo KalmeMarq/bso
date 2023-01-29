@@ -1,11 +1,16 @@
 package me.kalmemarq.bso;
 
-import me.kalmemarq.bso.number.*;
+import static me.kalmemarq.bso.BSOElement.END_TYPE_ID;
 
 import java.io.IOException;
 import java.util.Map;
 
-import static me.kalmemarq.bso.BSOElement.END_TYPE_ID;
+import me.kalmemarq.bso.number.BSOByte;
+import me.kalmemarq.bso.number.BSODouble;
+import me.kalmemarq.bso.number.BSOFloat;
+import me.kalmemarq.bso.number.BSOInt;
+import me.kalmemarq.bso.number.BSOLong;
+import me.kalmemarq.bso.number.BSOShort;
 
 // Probably gonna delete. it's useless
 public interface BSOBufWriter {

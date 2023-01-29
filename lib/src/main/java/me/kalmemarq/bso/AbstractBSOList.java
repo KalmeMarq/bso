@@ -22,6 +22,11 @@ public abstract class AbstractBSOList<T extends BSOElement> extends AbstractList
 
     @Override
     public int getAdditionalData() {
-        return BSOUtils.lengthAdditionalData(this.size(), this.indefiniteLength);
+        if (this.size() <= Byte.MAX_VALUE * 2 + 1) {
+            return BSOUtils.BYTE_LENGTH;
+        } else if (this.size() <= Short.MAX_VALUE * 2 + 1) {
+            return BSOUtils.SHORT_LENGTH;
+        }
+        return BSOUtils.INT_LENGTH;
     }
 }
