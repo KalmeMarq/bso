@@ -1,4 +1,4 @@
-# BSO (Binary Storage Object) (I may still change the name)
+# BSO (Binary Storage Object)
 
 Languages:
   - Java (Branch: [master](https://github.com/KalmeMarq/bso/tree/master))
