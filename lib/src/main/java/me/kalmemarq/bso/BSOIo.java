@@ -10,8 +10,12 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.ByteOrder;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
+
+import me.kalmemarq.bso.reader.BSOOutputStream;
+import me.kalmemarq.bso.writer.BSOInputStream;
 
 public final class BSOIo {
     private BSOIo() {}
@@ -49,6 +53,16 @@ public final class BSOIo {
             try (FileOutputStream outputStream = new FileOutputStream(file); DataOutputStream dataOutputStream = new DataOutputStream(outputStream)) {
                 write(element, dataOutputStream);
             }
+        }
+    }
+
+    public static void writeToFile(File file, BSOElement element, BSOCompression compression) throws IOException {
+        writeToFile(file, element, ByteOrder.BIG_ENDIAN, compression);
+    }
+
+    public static void writeToFile(File file, BSOElement element, ByteOrder endianess, BSOCompression compression) throws IOException {
+        try (FileOutputStream outputStream = new FileOutputStream(file)) {
+            write(element, new BSOOutputStream(outputStream, endianess, compression));
         }
     }
 
@@ -93,9 +107,25 @@ public final class BSOIo {
         }
     }
 
+    public static void readFromFile(File file, BSOCompression compression) throws IOException {
+        readFromFile(file, ByteOrder.BIG_ENDIAN, compression);
+    }
+
+    public static BSOElement readFromFile(File file, ByteOrder endianess, BSOCompression compression) throws IOException {
+        try (FileInputStream outputStream = new FileInputStream(file)) {
+            return read(new BSOInputStream(outputStream, endianess, compression));
+        }
+    }
+
     private static BSOElement read(DataInput inputStream) throws IOException {
         byte b = inputStream.readByte();
         BSOType<?> type = BSOTypes.byId((byte)(b & 0x0F));
         return type.read(inputStream, (byte) (b & 0xF0));
+    }
+
+    public enum BSOCompression {
+        NONE,
+        GZIP,
+        ZLIB
     }
 }

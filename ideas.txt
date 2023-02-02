@@ -17,3 +17,8 @@ BSOQueryCollector(
 collects from a BSOMap directly or from a file
 
 allow little endianess (ofc u need to be aware of which one the file u're reading is)
+
+compression
+  none
+  gzip
+  zlib (new)
