@@ -8,37 +8,36 @@ I wanted to make my own json binary thing, so I looked at NBT, BSON and CBOR to 
 
 The length of lists/arrays/map can be store as a byte(1 byte), short(2 bytes) or int(4 bytes). In NBT, for example, is always int(4 bytes). It's a small saving but... every 0 and 1 is important.
 
-Optionally, they can also have an indefinite length. Map uses it by default.
-
-I was trying to also allow different length types for strings. When I was doing that, in my head, I was thinking the default (short) was just length of 255 (but it's actually 65535). I'm dumb :/. I'll still added it bc for the most part, for my projects where I'll use this, most strings won't have a bigger length than 255.
-
 A BSO type can have addditional data which allows to save bytes as much as possible.
 
 ## Types
 
-- 0x00 Null
-  - 0x10 End
-- 0x01 Byte
-- 0x02 Short
-- 0x03 Int
-- 0x04 Long
-- 0x05 Float
-- 0x06 Double
-- 0x07 String
-- 0x08 Map
-- 0x09 List
-  - If the list is only for numbers you should use the specific number array element to save bytes.
-  - try to not use multiple types in lists if possible.
-- 0x0A Byte Array
-- 0x0B Short Array
-- 0x0C Int Array
-- 0x0D Long Array
-- 0x0E Float Array
-- 0x0F Double Array
+| ID   |      Tag     | Name            | Additional Data                                                                                                                                                                                | Min Byte Size                                       | Max Byte Size                                        | Byte Saving (Best case) |
+|------|:------------:|-----------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------|------------------------------------------------------|-------------------------|
+| 0x00 | Null         | TAG_Null        | 0x10 - End (It's a type and a subtype at the same time :/)                                                                                                                                     |                                                     |                                                      |                         |
+| 0x01 | Byte         | TAG_Byte        |                                                                                                                                                                                                | 1 byte                                              | 1 byte                                               |                         |
+| 0x02 | Short        | TAG_Short       | 0x30 - write as byte                                                                                                                                                                           | 1 byte                                              | 2 bytes                                              | 1 byte                  |
+| 0x03 | Int          | TAG_Int         | 0x30 - write as byte<br>0x20 - write as short                                                                                                                                                  | 1 byte                                              | 4 bytes                                              | 3 bytes                 |
+| 0x04 | Long         | TAG_Long        | 0x30 - write as byte<br>0x20 - write as short<br>0x10 - write as int                                                                                                                           | 1 byte                                              | 8 bytes                                              | 7 bytes                 |
+| 0x05 | Float        | TAG_Float       |                                                                                                                                                                                                | 4 bytes                                             | 4 bytes                                              |                         |
+| 0x06 | Double       | TAG_Double      |                                                                                                                                                                                                | 8 bytes                                             | 8 bytes                                              |                         |
+| 0x07 | String       | TAG_String      | 0x10 - use indefinite length<br>Without it the string has a max length of 65535                                                                                                                | (2 * len) + 1 bytes                                 | 2 + (2 * len) bytes                                  | 1 byte                  |
+| 0x08 | Map          | TAG_Map         | 0x30 - use indefinite length (default)<br>0x20 - write length as byte<br>0x10 - write length as short<br>otherwise, write length as int                                                        | key/value + 1 byte<br><br>key = (2 * len) + 1 bytes | 4 bytes + key/value<br><br>key = (2 * len) + 1 bytes | 3 bytes                 |
+| 0x09 | List         | TAG_List        | 0x20 - write length as byte<br>0x10 - write length as short<br>otherwise, write length as int                                                                                                  | (1 + 1 (list type)) bytes + values                  | (4 + 1 (list type)) bytes + 1 values                 | 3 bytes                 |
+| 0x0A | Byte Array   | TAG_ByteArray   | 0x20 - write length as byte<br>0x10 - write length as short<br>otherwise, write length as int                                                                                                  | 1 + (1 * len) bytes                                 | 4 + (1 * len) bytes                                  | 3 bytes                 |
+| 0x0B | Short Array  | TAG_ShortArray  | 0x20 - write length as byte<br>0x10 - write length as short<br>otherwise, write length as int<br><br>To the above can be added:<br>0x40 - write values as bytes                                | 1 + (1 * len) bytes                                 | 4 + (2 * len) bytes                                  | 3 + len bytes           |
+| 0x0C | Int Array    | TAG_IntArray    | 0x20 - write length as byte<br>0x10 - write length as short<br>otherwise, write length as int<br><br>To the above can be added:<br>0x80 - write values as byte<br>0x40 - write values as short | 1 + (1 * len) bytes                                 | 4 + (4 * len) bytes                                  | 3 + (3 * len) bytes     |
+| 0x0D | Long Array   | TAG_LongArray   | 0x20 - write length as byte<br>0x10 - write length as short<br>otherwise, write length as int<br><br>To the above can be added:<br>0x80 - write values as short<br>0x40 - write values as int  | 1 + (2 * len) bytes                                 | 4 + (8 * len) bytes                                  | 3 + (6 * len) bytes     |
+| 0x0E | Float Array  | TAG_FloatArray  | 0x20 - write length as byte<br>0x10 - write length as short<br>otherwise, write length as int                                                                                                  | 1 + (4 * len) bytes                                 | 4 + (4 * len) bytes                                  | 3 bytes                 |
+| 0x0F | Double Array | TAG_DoubleArray | 0x20 - write length as byte<br>0x10 - write length as short<br>otherwise, write length as int                                                                                                  | 1 + (8 * len) bytes                                 | 4 + (8 * len) bytes                                  | 3 bytes                 |
 
-A type can have additional data that will change how it is read.
+If a List is only for numbers you should use the specific number array element to save bytes. Also, try to not use multiple types in lists if possible.
 
 ## Additional Data
+
+### Short
+  
+  - 0x30 If the value is in the (signed) Byte range it will be written/read as a byte
 
 ### Int
   
@@ -206,21 +205,26 @@ TAG_ByteArray (ID 0x0A)
 TAG_ShortArray (ID 0x0B)
   - write byte (ADDITIONAL DATA + ID)
     - ADDITIONAL DATA
-      - if length is in the usigned byte range write 0x20
+      - if length is in the usigned byte range write 0x20 
       - if length is in the usigned short range write 0x10
       - otherwise write 0x00
+      - if all values are in the signed byte range add 0x40
   - write length
     - as unsigned byte if it's in the range
     - as unsigned short if it's in the range
     - otherwise as int
-  - write short values
+  - write values
+    - as byte if they all are in the signed byte range
+    - otherwise as short
 
 TAG_IntArray (ID 0x0C)
   - write byte (ADDITIONAL DATA + ID)
     - ADDITIONAL DATA
-      - if length is in the usigned byte range write 0x20 (+ 0x40 if all int values are in the signed short range)
-      - if length is in the usigned short range write 0x10 (+ 0x40 if all int values are in the signed short range)
-      - otherwise write 0x00 (+ 0x40 if all int values are in the signed short range)
+      - if length is in the usigned byte range write 0x20
+      - if length is in the usigned short range write 0x10
+      - otherwise write 0x00
+      - if all values are in the signed byte range add 0x80
+      - if all values are in the signed short range add 0x40
   - write length
     - as unsigned byte if it's in the range
     - as unsigned short if it's in the range
@@ -233,9 +237,11 @@ TAG_IntArray (ID 0x0C)
 TAG_LongArray (ID 0x0D)
   - write byte (ADDITIONAL DATA + ID)
     - ADDITIONAL DATA
-      - if length is in the usigned byte range write 0x20 (+ 0x40 if all int values are in the signed int range)
-      - if length is in the usigned short range write 0x10 (+ 0x40 if all int values are in the signed int range)
-      - otherwise write 0x00 (+ 0x40 if all int values are in the signed int range)
+      - if length is in the usigned byte range write 0x20
+      - if length is in the usigned short range write 0x10
+      - otherwise write 0x00
+      - if all values are in the signed short range add 0x80
+      - if all values are in the signed int range add 0x40
   - write length
     - as unsigned byte if it's in the range
     - as unsigned short if it's in the range
@@ -275,3 +281,7 @@ TAG_End (ID 0x10)
 ## How to read
 
 You know how to write, right? do it in reverse ,-,
+
+## Perfomance
+
+It's Java. We all know how fast it really is.

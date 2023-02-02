@@ -1,5 +1,19 @@
-LongArray can now write values as Int if in range.
-Maybe see if with more byte magic I can also allowed to be able to write short if in range. Maybe even byte.
+Query (only map stuff)
 
-IntArray can now write values as Short if in range.
-Maybe see if with more byte magic I can also allowed to be able to write byte if in range.
+map = {
+  "level": {
+    "gen": {
+      "seed": 69L
+    },
+    "version": 20
+  }
+}
+
+BSOQueryCollector(
+  BSOQuery("level/gen", BSOTypes.LONG, "seed"),
+  BSOQuery("level", BSOTypes.INT, "version")
+).collect(map)
+
+collects from a BSOMap directly or from a file
+
+allow little endianess (ofc u need to be aware of which one the file u're reading is)

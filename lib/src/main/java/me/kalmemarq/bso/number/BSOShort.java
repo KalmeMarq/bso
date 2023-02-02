@@ -28,7 +28,13 @@ public final class BSOShort extends AbstractBSONumber implements Comparable<BSOS
 
     @Override
     public void write(DataOutput output) throws IOException {
-        output.writeShort(this.value);
+        if (this.value >= Byte.MIN_VALUE && value <= Byte.MAX_VALUE) output.writeByte((byte)(this.value & 0xFF));
+        else output.writeShort(this.value);
+    }
+
+    @Override
+    public int getAdditionalData() {
+        return this.value >= Byte.MIN_VALUE && value <= Byte.MAX_VALUE ? VARNUM_BYTE : 0x00;
     }
 
     @Override

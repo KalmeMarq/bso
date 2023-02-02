@@ -42,12 +42,14 @@ public class BSOTypes {
     public static final BSOType<BSOShort> SHORT = new BSOType<>(BSOElement.SHORT_TYPE_ID, "TAG_Short") {
         @Override
         public BSOShort read(DataInput input, int additionalData) throws IOException {
-            return BSOShort.of(input.readShort());
+            return BSOShort.of(additionalData == BSOUtil.VARNUM_BYTE ? input.readByte() : input.readShort());
         }
 
         @Override
         public void write(DataOutput output, BSOShort element) throws IOException {
-            output.writeShort(element.asShort());
+            short value = element.asShort();
+            if (value >= Byte.MIN_VALUE && value <= Byte.MAX_VALUE) output.writeByte((byte)(value & 0xFF));
+            else output.writeShort(value);
         }
     };
 
@@ -227,10 +229,11 @@ public class BSOTypes {
     public static final BSOType<BSOShortArray> SHORT_ARRAY = new BSOType<>(BSOElement.SHORT_ARRAY_TYPE_ID, "TAG_ShortArray") {
         @Override
         public BSOShortArray read(DataInput input, int additionalData) throws IOException {
-            int len = BSOUtil.readLength(input, additionalData);
+            int len = BSOUtil.readLength(input, additionalData & 0x30);
             short[] vls = new short[len];
+            boolean readAsByte = (additionalData & 0xF0) > 0x30;
             for (int i = 0; i < len; i++) {
-                vls[i] = input.readShort();
+                vls[i] = readAsByte ? input.readByte() : input.readShort();
             }
             return BSOShortArray.of(vls);
         }
