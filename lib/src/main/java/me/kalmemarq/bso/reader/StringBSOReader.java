@@ -22,16 +22,14 @@ import me.kalmemarq.bso.number.BSOLong;
 import me.kalmemarq.bso.number.BSOShort;
 
 public class StringBSOReader {
-    private String data;
-    private int cursor;
-    private int line;
-    private int column;
+    private final StringReader reader;
 
     public StringBSOReader() {
+        this.reader = new StringReader("");
     }
 
-    public BSOMap read(String sbso) {
-        BSOElement el = this.readSBSO(sbso);
+    public BSOMap readMap(String sbso) {
+        BSOElement el = this.read(sbso);
         try {
             return (BSOMap) el;
         } catch (ClassCastException e) {
@@ -39,590 +37,391 @@ public class StringBSOReader {
         }
     }
 
-    public BSOElement readSBSO(String sbso) {
-        data = sbso;
-        cursor = 0;
-        line = 0;
-        column = 0;
+    public BSOElement read(String sbso) {
+        this.reader.setDataAndReset(sbso);
         return this.readElement();
     }
-
-    private RuntimeException createErrorWithPos(String msg, Object ...args) {
-        return new RuntimeException(String.format(msg, args) + String.format(" at %d:%d", line, column));
-    }
-
-    private boolean canRead() {
-        return this.cursor < this.data.length();
-    }
-
-    private char currentChar() {
-        return data.charAt(this.cursor);
-    }
-
-    private char peek(int amount) {
-        return data.charAt(this.cursor + amount);
-    }
-
-    public void advance() {
-        ++this.cursor;
-        ++this.column;
-
-        if (canRead() && this.currentChar() == '\n') {
-            this.column = 0;
-            ++this.line;
-            advance();
-        }
-    }
-
-    private void skipWhitespace() {
-        while (this.canRead() && Character.isWhitespace(this.currentChar())) {
-            if (this.currentChar() == '\n') {
-                this.column = 0;
-                ++this.line;
-            }
-
-            advance();
-        }
-    }
-
-    private void expect(char chr) {
-        if (!canRead() || currentChar() != chr) {
-            throw createErrorWithPos("Expected " + chr + " but found " + this.currentChar());
-        }
-        advance();
-    }
-
-    private boolean isAllowedInUnquotedStr(char chr, boolean isBeginning) {
-        if (isBeginning) {
-            return chr >= 'A' && chr <= 'Z' || chr >= 'a' && chr <= 'z' || chr == '_' || chr == '+' || chr == '-' || chr == '.' || chr == '*';
-        } else {
-            return chr >= '0' && chr <= '9' || chr >= 'A' && chr <= 'Z' || chr >= 'a' && chr <= 'z' || chr == '_' || chr == '+' || chr == '-' || chr == '.' || chr == '*';
-        }
-    }
-
-    public boolean isNumber(char chr) {
-        return chr >= '0' && chr <= '9' || chr == '.' || chr == '-';
-    }
-
-    private byte readByte() {
-        return (byte)this.readInt("byte");
-    }
-
-    private short readShort() {
-        return (short)this.readInt("short");
-    }
-
+    
     private BSOElement readNumber() {
-        int curStart = this.cursor;
+        reader.skipWhitespace();
 
-        while (canRead() && isNumber(this.currentChar())) {
-            this.advance();
+        int curStart = reader.getCursor();
+
+        while (reader.canRead() && reader.isAllowedInNumber(reader.currentChar())) {
+            reader.advance();
         }
 
-        skipWhitespace();
-
-        String num = this.data.substring(curStart, this.cursor);
-
-        if (num.isEmpty()) {
-            throw createErrorWithPos("Expect number but found nothing :(");
+        if (curStart == reader.getCursor()) {
+            throw reader.createErrorWithPos("Expect number but found nothing :(");
         }
 
-        if (currentChar() == 'b') {
-            try {
-                advance();
-                return BSOByte.of((byte)Integer.parseInt(num));
-            } catch (NumberFormatException e) {
-                throw createErrorWithPos("Invalid byte number");
-            }
-        } else if (currentChar() == 's') {
-            try {
-                advance();
-                return BSOShort.of((short)Integer.parseInt(num));
-            } catch (NumberFormatException e) {
-                throw createErrorWithPos("Invalid short number");
-            }
-        } else if (currentChar() == 'L') {
-            try {
-                advance();
-                return BSOLong.of(Long.parseLong(num));
-            } catch (NumberFormatException e) {
-                throw createErrorWithPos("Invalid long number");
-            }
-        } else if (currentChar() == 'f') {
-            try {
-                advance();
-                return BSOFloat.of(Float.parseFloat(num));
-            } catch (NumberFormatException e) {
-                throw createErrorWithPos("Invalid float number");
-            }
-        } else if (currentChar() == 'd' || currentChar() == 'D') {
-            try {
-                advance();
-                return BSODouble.of(Double.parseDouble(num));
-            } catch (NumberFormatException e) {
-                throw createErrorWithPos("Invalid double number");
-            }
+        if (reader.currentChar() == 'b') {
+            reader.setCursor(curStart);
+            byte vl = reader.readByte();
+            reader.advance();
+            return BSOByte.of(vl);
+        } else if (reader.currentChar() == 's') {
+            reader.setCursor(curStart);
+            short vl = reader.readShort();
+            reader.advance();
+            return BSOShort.of(vl);
+        } else if (reader.currentChar() == 'L') {
+            reader.setCursor(curStart);
+            long vl = reader.readLong();
+            reader.advance();
+            return BSOLong.of(vl);
+        } else if (reader.currentChar() == 'f') {
+            reader.setCursor(curStart);
+            float vl = reader.readFloat();
+            reader.advance();
+            return BSOFloat.of(vl);
+        } else if (reader.currentChar() == 'd' || reader.currentChar() == 'D') {
+            reader.setCursor(curStart);
+            double vl = reader.readDouble();
+            reader.advance();
+            return BSODouble.of(vl);
         } else {
-            try {
-                return BSOInt.of(Integer.parseInt(num));
-            } catch (NumberFormatException e) {
-                throw createErrorWithPos("Invalid int number");
-            }
+            reader.setCursor(curStart);
+            int vl = reader.readInt();
+            return BSOInt.of(vl);
         }
-    }
-
-    private int readInt(String type) {
-        int curStart = this.cursor;
-
-        while (canRead() && isNumber(this.currentChar())) {
-            this.advance();
-        }
-
-        String num = this.data.substring(curStart, this.cursor);
-
-        if (num.isEmpty()) {
-            throw createErrorWithPos("Expect " + type + " number but found nothing :(");
-        }
-
-        try {
-            return Integer.parseInt(num);
-        } catch (NumberFormatException e) {
-            throw createErrorWithPos("Invalid " + type + " number");
-        }
-    }
-
-    private int readInt() {
-        return readInt("int");
-    }
-
-    private long readLong() {
-        int curStart = this.cursor;
-
-        while (canRead() && isNumber(this.currentChar())) {
-            this.advance();
-        }
-
-        String num = this.data.substring(curStart, this.cursor);
-
-        if (num.isEmpty()) {
-            throw createErrorWithPos("Expect long number but found nothing :(");
-        }
-
-        try {
-            return Long.parseLong(num);
-        } catch (NumberFormatException e) {
-            throw createErrorWithPos("Invalid long number");
-        }
-    }
-
-    private float readFloat() {
-        int curStart = this.cursor;
-
-        while (canRead() && isNumber(this.currentChar())) {
-            this.advance();
-        }
-
-        String num = this.data.substring(curStart, this.cursor);
-
-        if (num.isEmpty()) {
-            throw createErrorWithPos("Expect float number but found nothing :(");
-        }
-
-        try {
-            return Float.parseFloat(num);
-        } catch (NumberFormatException e) {
-            throw createErrorWithPos("Invalid float number");
-        }
-    }
-
-    private double readDouble() {
-        int curStart = this.cursor;
-
-        while (canRead() && isNumber(this.currentChar())) {
-            this.advance();
-        }
-
-        String num = this.data.substring(curStart, this.cursor);
-
-        if (num.isEmpty()) {
-            throw createErrorWithPos("Expect double number but found nothing :(");
-        }
-
-        try {
-            return Double.parseDouble(num);
-        } catch (NumberFormatException e) {
-            throw createErrorWithPos("Invalid double number");
-        }
-    }
-
-    private String readQString() {
-        int curStart = this.cursor;
-
-        char q = currentChar();
-        advance();
-
-        while (canRead() && currentChar() != q) {
-            advance();
-        }
-
-        int curEnd = this.cursor;
-
-        advance();
-
-        return this.data.substring(curStart + 1, curEnd);
-    }
-
-    private String readUQString() {
-        int curStart = this.cursor;
-
-        boolean begin = true;
-        while (canRead() && isAllowedInUnquotedStr(currentChar(), begin)) {
-            advance();
-            if (begin) begin = false;
-        }
-
-        return this.data.substring(curStart, this.cursor);
-    }
-
-    private String readTString() {
-        if (!canRead()) return "";
-
-        char n = currentChar();
-
-        if (n == '"' || n == '\'') {
-            return readQString();
-        }
-
-        return readUQString();
     }
 
     private BSOMap readMap() {
         BSOMap map = new BSOMap();
 
-        expect('{');
-        skipWhitespace();
+        reader.skipWhitespace();
+        reader.expect('{');
+        reader.skipWhitespace();
 
-        while (canRead() && currentChar() != '}') {
-            String key = this.readTString();
-            skipWhitespace();
-            expect(':');
-            skipWhitespace();
+        while (reader.canRead() && reader.currentChar() != '}') {
+            String key = reader.readString();
+            reader.skipWhitespace();
+            reader.expect(':');
+            reader.skipWhitespace();
             map.put(key, this.readElement());
-            skipWhitespace();
+            reader.skipWhitespace();
 
-            if (canRead()) {
-                if (currentChar() == ',') {
-                    advance();
-                    if (currentChar() == '}') {
-                        throw createErrorWithPos("Trailing comma");
+            if (reader.canRead()) {
+                if (reader.currentChar() == ',') {
+                    reader.advance();
+                    if (reader.currentChar() == '}') {
+                        throw reader.createErrorWithPos("Trailing comma");
                     }
-                } else if (currentChar() != '}') {
-                    throw createErrorWithPos("Missing comma");
+                } else if (reader.currentChar() != '}') {
+                    throw reader.createErrorWithPos("Missing comma");
                 }
             } else {
-                throw createErrorWithPos("Map ended badly");
+                throw reader.createErrorWithPos("Map ended badly");
             }
 
-            skipWhitespace();
+            reader.skipWhitespace();
         }
 
-        expect('}');
+        reader.expect('}');
         return map;
     }
 
     private BSOList readList() {
         List<BSOElement> list = new ArrayList<>();
 
-        expect('[');
-        skipWhitespace();
+        reader.skipWhitespace();
+        reader.expect('[');
+        reader.skipWhitespace();
 
         BSOType<?> type = null;
-        while (canRead() && currentChar() != ']') {
+        while (reader.canRead() && reader.currentChar() != ']') {
             BSOElement el = this.readElement();
             if (type == null) {
                 type = el.getType();
             } else if (type != el.getType()) {
-                throw createErrorWithPos("List can only contain a single type. Found element of type %s when list is of type %s", el.getType().getName(), type.getName());
+                throw reader.createErrorWithPos("List can only contain a single type. Found element of type %s when list is of type %s", el.getType().getName(), type.getName());
             }
 
             list.add(el);
 
-            skipWhitespace();
+            reader.skipWhitespace();
 
-            if (canRead()) {
-                if (currentChar() == ',') {
-                    advance();
-                    skipWhitespace();
+            if (reader.canRead()) {
+                if (reader.currentChar() == ',') {
+                    reader.advance();
+                    reader.skipWhitespace();
 
-                    if (currentChar() == ']') {
-                        throw createErrorWithPos("Trailing comma");
+                    if (reader.currentChar() == ']') {
+                        throw reader.createErrorWithPos("Trailing comma");
                     }
-                } else if (currentChar() != ']') {
-                    throw createErrorWithPos("Missing comma");
+                } else if (reader.currentChar() != ']') {
+                    throw reader.createErrorWithPos("Missing comma");
                 }
             } else {
-                throw createErrorWithPos("List ended badly");
+                throw reader.createErrorWithPos("List ended badly");
             }
         }
 
-        expect(']');
+        reader.expect(']');
         return new BSOList(list);
     }
 
     private BSOByteArray readByteArray() {
         List<Byte> list = new ArrayList<>();
 
-        expect('[');
-        expect('B');
-        expect(';');
-        skipWhitespace();
+        reader.skipWhitespace();
+        reader.expect('[');
+        reader.expect('B');
+        reader.expect(';');
+        reader.skipWhitespace();
 
-        while (canRead() && currentChar() != ']') {
-            byte num = this.readByte();
+        while (reader.canRead() && reader.currentChar() != ']') {
+            byte num = reader.readByte();
             list.add(num);
 
-            if (currentChar() == 'b') { // Skip if number had the indicator. It's not a problem
-                advance();
+            if (reader.currentChar() == 'b') { // Skip if number had the indicator. It's not a problem
+                reader.advance();
             }
 
-            skipWhitespace();
+            reader.skipWhitespace();
 
-            if (canRead()) {
-                if (currentChar() == ',') {
-                    advance();
-                    skipWhitespace();
+            if (reader.canRead()) {
+                if (reader.currentChar() == ',') {
+                    reader.advance();
+                    reader.skipWhitespace();
 
-                    if (currentChar() == ']') {
-                        throw createErrorWithPos("Trailing comma");
+                    if (reader.currentChar() == ']') {
+                        throw reader.createErrorWithPos("Trailing comma");
                     }
-                } else if (currentChar() != ']') {
-                    throw createErrorWithPos("Missing comma");
+                } else if (reader.currentChar() != ']') {
+                    throw reader.createErrorWithPos("Missing comma");
                 }
             } else {
-                throw createErrorWithPos("ByteArray ended badly");
+                throw reader.createErrorWithPos("ByteArray ended badly");
             }
         }
 
-        expect(']');
-        skipWhitespace();
+        reader.expect(']');
+        reader.skipWhitespace();
         return BSOByteArray.of(list);
     }
 
     private BSOShortArray readShortArray() {
         List<Short> list = new ArrayList<>();
 
-        expect('[');
-        expect('S');
-        expect(';');
-        skipWhitespace();
+        reader.skipWhitespace();
+        reader.expect('[');
+        reader.expect('S');
+        reader.expect(';');
+        reader.skipWhitespace();
 
-        while (canRead() && currentChar() != ']') {
-            short num = this.readShort();
+        while (reader.canRead() && reader.currentChar() != ']') {
+            short num = reader.readShort();
             list.add(num);
 
-            if (currentChar() == 's') { // Skip if number had the indicator. It's not a problem
-                advance();
+            if (reader.currentChar() == 's') { // Skip if number had the indicator. It's not a problem
+                reader.advance();
             }
 
-            skipWhitespace();
+            reader.skipWhitespace();
 
-            if (canRead()) {
-                if (currentChar() == ',') {
-                    advance();
-                    skipWhitespace();
+            if (reader.canRead()) {
+                if (reader.currentChar() == ',') {
+                    reader.advance();
+                    reader.skipWhitespace();
 
-                    if (currentChar() == ']') {
-                        throw createErrorWithPos("Trailing comma");
+                    if (reader.currentChar() == ']') {
+                        throw reader.createErrorWithPos("Trailing comma");
                     }
-                } else if (currentChar() != ']') {
-                    throw createErrorWithPos("Missing comma");
+                } else if (reader.currentChar() != ']') {
+                    throw reader.createErrorWithPos("Missing comma");
                 }
             } else {
-                throw createErrorWithPos("ShortArray ended badly");
+                throw reader.createErrorWithPos("ShortArray ended badly");
             }
         }
 
-        expect(']');
-        skipWhitespace();
+        reader.expect(']');
+        reader.skipWhitespace();
         return BSOShortArray.of(list);
     }
 
     private BSOIntArray readIntArray() {
         List<Integer> list = new ArrayList<>();
 
-        expect('[');
-        expect('I');
-        expect(';');
-        skipWhitespace();
+        reader.skipWhitespace();
+        reader.expect('[');
+        reader.expect('I');
+        reader.expect(';');
+        reader.skipWhitespace();
 
-        while (canRead() && currentChar() != ']') {
-            int num = this.readInt();
+        while (reader.canRead() && reader.currentChar() != ']') {
+            int num = reader.readInt();
             list.add(num);
-            skipWhitespace();
+            reader.skipWhitespace();
 
-            if (canRead()) {
-                if (currentChar() == ',') {
-                    advance();
-                    skipWhitespace();
+            if (reader.canRead()) {
+                if (reader.currentChar() == ',') {
+                    reader.advance();
+                    reader.skipWhitespace();
 
-                    if (currentChar() == ']') {
-                        throw createErrorWithPos("Trailing comma");
+                    if (reader.currentChar() == ']') {
+                        throw reader.createErrorWithPos("Trailing comma");
                     }
-                } else if (currentChar() != ']') {
-                    throw createErrorWithPos("Missing comma");
+                } else if (reader.currentChar() != ']') {
+                    throw reader.createErrorWithPos("Missing comma");
                 }
             } else {
-                throw createErrorWithPos("IntArray ended badly");
+                throw reader.createErrorWithPos("IntArray ended badly");
             }
         }
 
-        expect(']');
-        skipWhitespace();
+        reader.expect(']');
+        reader.skipWhitespace();
         return BSOIntArray.of(list);
     }
 
     private BSOLongArray readLongArray() {
         List<Long> list = new ArrayList<>();
 
-        expect('[');
-        expect('L');
-        expect(';');
-        skipWhitespace();
+        reader.skipWhitespace();
+        reader.expect('[');
+        reader.expect('L');
+        reader.expect(';');
+        reader.skipWhitespace();
 
-        while (canRead() && currentChar() != ']') {
-            long num = this.readLong();
+        while (reader.canRead() && reader.currentChar() != ']') {
+            long num = reader.readLong();
             list.add(num);
 
-            if (currentChar() == 'L') { // Skip if number had the indicator. It's not a problem
-                advance();
+            if (reader.currentChar() == 'L') { // Skip if number had the indicator. It's not a problem
+                reader.advance();
             }
 
-            skipWhitespace();
+            reader.skipWhitespace();
 
-            if (canRead()) {
-                if (currentChar() == ',') {
-                    advance();
-                    skipWhitespace();
+            if (reader.canRead()) {
+                if (reader.currentChar() == ',') {
+                    reader.advance();
+                    reader.skipWhitespace();
 
-                    if (currentChar() == ']') {
-                        throw createErrorWithPos("Trailing comma");
+                    if (reader.currentChar() == ']') {
+                        throw reader.createErrorWithPos("Trailing comma");
                     }
-                } else if (currentChar() != ']') {
-                    throw createErrorWithPos("Missing comma");
+                } else if (reader.currentChar() != ']') {
+                    throw reader.createErrorWithPos("Missing comma");
                 }
             } else {
-                throw createErrorWithPos("LongArray ended badly");
+                throw reader.createErrorWithPos("LongArray ended badly");
             }
         }
 
-        expect(']');
-        skipWhitespace();
+        reader.expect(']');
+        reader.skipWhitespace();
         return BSOLongArray.of(list);
     }
 
     private BSOFloatArray readFloatArray() {
         List<Float> list = new ArrayList<>();
 
-        expect('[');
-        expect('F');
-        expect(';');
-        skipWhitespace();
+        reader.skipWhitespace();
+        reader.expect('[');
+        reader.expect('F');
+        reader.expect(';');
+        reader.skipWhitespace();
 
-        while (canRead() && currentChar() != ']') {
-            float num = this.readFloat();
+        while (reader.canRead() && reader.currentChar() != ']') {
+            float num = reader.readFloat();
             list.add(num);
 
-            if (currentChar() == 'f') { // Skip if number had the indicator. It's not a problem
-                advance();
+            if (reader.currentChar() == 'f') { // Skip if number had the indicator. It's not a problem
+                reader.advance();
             }
 
-            skipWhitespace();
+            reader.skipWhitespace();
 
-            if (canRead()) {
-                if (currentChar() == ',') {
-                    advance();
-                    skipWhitespace();
+            if (reader.canRead()) {
+                if (reader.currentChar() == ',') {
+                    reader.advance();
+                    reader.skipWhitespace();
 
-                    if (currentChar() == ']') {
-                        throw createErrorWithPos("Trailing comma");
+                    if (reader.currentChar() == ']') {
+                        throw reader.createErrorWithPos("Trailing comma");
                     }
-                } else if (currentChar() != ']') {
-                    throw createErrorWithPos("Missing comma");
+                } else if (reader.currentChar() != ']') {
+                    throw reader.createErrorWithPos("Missing comma");
                 }
             } else {
-                throw createErrorWithPos("FloatArray ended badly");
+                throw reader.createErrorWithPos("FloatArray ended badly");
             }
         }
 
-        expect(']');
-        skipWhitespace();
+        reader.expect(']');
+        reader.skipWhitespace();
         return BSOFloatArray.of(list);
     }
 
     private BSODoubleArray readDoubleArray() {
         List<Double> list = new ArrayList<>();
 
-        expect('[');
-        expect('D');
-        expect(';');
-        skipWhitespace();
+        reader.skipWhitespace();
+        reader.expect('[');
+        reader.expect('D');
+        reader.expect(';');
+        reader.skipWhitespace();
 
-        while (canRead() && currentChar() != ']') {
-            double num = this.readDouble();
+        while (reader.canRead() && reader.currentChar() != ']') {
+            double num = reader.readDouble();
             list.add(num);
 
-            if (currentChar() == 'd' || currentChar() == 'D') { // Skip if number had the indicator. It's not a problem
-                advance();
+            if (reader.currentChar() == 'd' || reader.currentChar() == 'D') { // Skip if number had the indicator. It's not a problem
+                reader.advance();
             }
 
-            skipWhitespace();
+            reader.skipWhitespace();
 
-            if (canRead()) {
-                if (currentChar() == ',') {
-                    advance();
-                    skipWhitespace();
+            if (reader.canRead()) {
+                if (reader.currentChar() == ',') {
+                    reader.advance();
+                    reader.skipWhitespace();
 
-                    if (currentChar() == ']') {
-                        throw createErrorWithPos("Trailing comma");
+                    if (reader.currentChar() == ']') {
+                        throw reader.createErrorWithPos("Trailing comma");
                     }
-                } else if (currentChar() != ']') {
-                    throw createErrorWithPos("Missing comma");
+                } else if (reader.currentChar() != ']') {
+                    throw reader.createErrorWithPos("Missing comma");
                 }
             } else {
-                throw createErrorWithPos("DoubleArray ended badly");
+                throw reader.createErrorWithPos("DoubleArray ended badly");
             }
         }
 
-        expect(']');
-        skipWhitespace();
+        reader.expect(']');
+        reader.skipWhitespace();
         return BSODoubleArray.of(list);
     }
 
     private BSOElement readElement() {
-        skipWhitespace();
+        reader.skipWhitespace();
 
-        if (this.currentChar() == '{') {
+        if (this.reader.currentChar() == '{') {
             return this.readMap();
-        } else if (this.currentChar() == '[' && this.peek(1) == 'B') {
+        } else if (this.reader.currentChar() == '[' && reader.peek(1) == 'B') {
             return this.readByteArray();
-        } else if (this.currentChar() == '[' && this.peek(1) == 'S') {
+        } else if (this.reader.currentChar() == '[' && reader.peek(1) == 'S') {
             return this.readShortArray();
-        } else if (this.currentChar() == '[' && this.peek(1) == 'I') {
+        } else if (this.reader.currentChar() == '[' && reader.peek(1) == 'I') {
             return this.readIntArray();
-        } else if (this.currentChar() == '[' && this.peek(1) == 'L') {
+        } else if (this.reader.currentChar() == '[' && reader.peek(1) == 'L') {
             return this.readLongArray();
-        } else if (this.currentChar() == '[' && this.peek(1) == 'F') {
+        } else if (this.reader.currentChar() == '[' && reader.peek(1) == 'F') {
             return this.readFloatArray();
-        } else if (this.currentChar() == '[' && this.peek(1) == 'D') {
+        } else if (this.reader.currentChar() == '[' && reader.peek(1) == 'D') {
             return this.readDoubleArray();
-        } else if (this.currentChar() == '[') {
+        } else if (this.reader.currentChar() == '[') {
             return this.readList();
-        } else if (this.currentChar() == '"' || this.currentChar() == '\'') {
-            return BSOString.of(this.readQString());
-        } else if (isNumber(this.currentChar())) {
+        } else if (this.reader.currentChar() == '"' || this.reader.currentChar() == '\'') {
+            return BSOString.of(reader.readQuotedString());
+        } else if (reader.isAllowedInNumber(this.reader.currentChar())) {
             return this.readNumber();
         } else {
-            throw new RuntimeException("Unknown type started with " + data.substring(this.cursor, Math.min(this.cursor + 5, this.data.length())));
+            throw reader.createErrorWithShowStarting("Unknown type started with ", 5);
         }
     }
 }
