@@ -249,10 +249,15 @@ public class BSOTypes {
         @Override
         public BSOIntArray read(DataInput input, int additionalData) throws IOException {
             int len = BSOUtil.readLength(input, additionalData & 0x30);
-            boolean readAsShort = (additionalData & 0xC0) == 0x40;
+
+            int readAs = 0;
+            if ((additionalData & 0xF0) > 0x30) {
+                readAs = ((additionalData & 0xF0) - 0x40) > 0x30 ? 2 : 1;
+            }
+
             int[] vls = new int[len];
             for (int i = 0; i < len; i++) {
-                vls[i] = readAsShort ? input.readShort() : input.readInt();
+                vls[i] = readAs == 2 ? input.readByte() : readAs == 1 ? input.readShort() : input.readInt();
             }
             return BSOIntArray.of(vls);
         }
@@ -271,10 +276,15 @@ public class BSOTypes {
         @Override
         public BSOLongArray read(DataInput input, int additionalData) throws IOException {
             int len = BSOUtil.readLength(input, additionalData & 0x30);
-            boolean readAsInt = (additionalData & 0xC0) == 0x40;
+
+            int readAs = 0;
+            if ((additionalData & 0xF0) > 0x30) {
+                readAs = ((additionalData & 0xF0) - 0x40) > 0x30 ? 2 : 1;
+            }
+
             long[] vls = new long[len];
             for (int i = 0; i < len; i++) {
-                vls[i] = readAsInt ? input.readInt() : input.readLong();
+                vls[i] = readAs == 2 ? input.readShort() : readAs == 1 ? input.readInt() : input.readLong();
             }
             return BSOLongArray.of(vls);
         }

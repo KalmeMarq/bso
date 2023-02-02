@@ -71,6 +71,22 @@ A type can have additional data that will change how it is read.
   - 0x10 Write/Read list length as unsigned short
   - 0x20 Write/Read list length as int
 
+#### Int Array
+
+If all the values are in the signed byte range, write as byte. Saves 3 bytes per value.
+
+Otherwise, if all the values are in the signed short range, write as short. Saves 2 bytes per value.
+
+If none of the above are possible, write as int.
+
+#### Long Array
+
+If all the values are in the signed short range, write as short. Saves 6 bytes per value.
+
+Otherwise, if all the values are in the signed int range, write as int. Saves 4 bytes per value.
+
+If none of the above are possible, write as long.
+
 ## Extra
 
 StringBSOReader - reads BSO from SBSO (bso string format)
@@ -209,7 +225,10 @@ TAG_IntArray (ID 0x0C)
     - as unsigned byte if it's in the range
     - as unsigned short if it's in the range
     - otherwise as int
-  - write values as short if are in the signed short range. otherwise, write values as int
+  - write values
+    - as byte if they all are in the signed byte range
+    - as short if they all are in the signed short range
+    - otherwise as int
 
 TAG_LongArray (ID 0x0D)
   - write byte (ADDITIONAL DATA + ID)
@@ -221,7 +240,10 @@ TAG_LongArray (ID 0x0D)
     - as unsigned byte if it's in the range
     - as unsigned short if it's in the range
     - otherwise as int
-  - write values as int if they are in the signed int range. otherwise, write values as long
+  - write values
+    - as short if they all are in the signed short range
+    - as int if they all are in the signed int range
+    - otherwise as long
 
 TAG_FloatArray (ID 0x0E)
   - write byte (ADDITIONAL DATA + ID)

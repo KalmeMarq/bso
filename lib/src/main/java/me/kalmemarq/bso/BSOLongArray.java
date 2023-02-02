@@ -36,10 +36,11 @@ public final class BSOLongArray extends AbstractBSOList<BSOLong> {
     public void write(DataOutput output) throws IOException {
         if (!indefiniteLength) BSOUtil.writeLength(output, this.values.length);
 
-        boolean intRange = this.checkIntRange();
+        int r = this.checkRange();
 
         for (int i = 0; i < this.values.length; i++) {
-            if (intRange) output.writeInt((int)(this.values[i] & 0xFFFFFFFFL));
+            if (r == 2) output.writeShort((short)(this.values[i] & 0xFFFFL));
+            else if (r == 1) output.writeInt((int)(this.values[i] & 0xFFFFFFFFL));
             else output.writeLong(this.values[i]);
         }
         if (indefiniteLength) output.writeByte(END_TYPE_ID);
@@ -47,10 +48,10 @@ public final class BSOLongArray extends AbstractBSOList<BSOLong> {
 
     @Override
     public int getAdditionalData() {
-        return super.getAdditionalData() + (checkIntRange() ? 0x40 : 0x00);
+        return super.getAdditionalData() + (checkRange() * 0x40);
     }
 
-    private boolean checkIntRange() {
+    private int checkRange() {
         long s = 0;
         long b = 0;
 
@@ -64,7 +65,9 @@ public final class BSOLongArray extends AbstractBSOList<BSOLong> {
             }
         }
 
-        return s >= Integer.MIN_VALUE && b <= Integer.MAX_VALUE;
+        if (s >= Short.MIN_VALUE && b <= Short.MAX_VALUE) return 2;
+        if (s >= Integer.MIN_VALUE && b <= Integer.MAX_VALUE) return 1;
+        return 0;
     }
 
     public long[] getLongArray() {
