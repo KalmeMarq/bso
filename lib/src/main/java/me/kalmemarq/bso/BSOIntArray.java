@@ -35,10 +35,36 @@ public final class BSOIntArray extends AbstractBSOList<BSOInt> {
     @Override
     public void write(DataOutput output) throws IOException {
         if (!indefiniteLength) BSOUtil.writeLength(output, this.values.length);
+
+        boolean shortRange = this.checkShortRange();
+
         for (int i = 0; i < this.values.length; i++) {
-            output.writeInt(this.values[i]);
+            if (shortRange) output.writeShort((this.values[i] & 0xFFFF));
+            else output.writeInt(this.values[i]);
         }
         if (indefiniteLength) output.writeByte(END_TYPE_ID);
+    }
+
+    @Override
+    public int getAdditionalData() {
+        return super.getAdditionalData() + (checkShortRange() ? 0x40 : 0x00);
+    }
+
+    private boolean checkShortRange() {
+        int s = 0;
+        int b = 0;
+
+        for (int i = 0; i < this.values.length; i++) {
+            if (this.values[i] < s) {
+                s = this.values[i];
+            }
+
+            if (this.values[i] > b) {
+                b = this.values[i];
+            }
+        }
+
+        return s >= Short.MIN_VALUE && b <= Short.MAX_VALUE;
     }
 
     public int[] getIntArray() {

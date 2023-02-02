@@ -248,10 +248,11 @@ public class BSOTypes {
     public static final BSOType<BSOIntArray> INT_ARRAY = new BSOType<>(BSOElement.INT_ARRAY_TYPE_ID, "TAG_IntArray") {
         @Override
         public BSOIntArray read(DataInput input, int additionalData) throws IOException {
-            int len = BSOUtil.readLength(input, additionalData);
+            int len = BSOUtil.readLength(input, additionalData & 0x30);
+            boolean readAsShort = (additionalData & 0xC0) == 0x40;
             int[] vls = new int[len];
             for (int i = 0; i < len; i++) {
-                vls[i] = input.readInt();
+                vls[i] = readAsShort ? input.readShort() : input.readInt();
             }
             return BSOIntArray.of(vls);
         }
@@ -269,10 +270,11 @@ public class BSOTypes {
     public static final BSOType<BSOLongArray> LONG_ARRAY = new BSOType<>(BSOElement.LONG_ARRAY_TYPE_ID, "TAG_LongArray") {
         @Override
         public BSOLongArray read(DataInput input, int additionalData) throws IOException {
-            int len = BSOUtil.readLength(input, additionalData);
+            int len = BSOUtil.readLength(input, additionalData & 0x30);
+            boolean readAsInt = (additionalData & 0xC0) == 0x40;
             long[] vls = new long[len];
             for (int i = 0; i < len; i++) {
-                vls[i] = input.readLong();
+                vls[i] = readAsInt ? input.readInt() : input.readLong();
             }
             return BSOLongArray.of(vls);
         }

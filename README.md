@@ -202,26 +202,26 @@ TAG_ShortArray (ID 0x0B)
 TAG_IntArray (ID 0x0C)
   - write byte (ADDITIONAL DATA + ID)
     - ADDITIONAL DATA
-      - if length is in the usigned byte range write 0x20
-      - if length is in the usigned short range write 0x10
-      - otherwise write 0x00
+      - if length is in the usigned byte range write 0x20 (+ 0x40 if all int values are in the signed short range)
+      - if length is in the usigned short range write 0x10 (+ 0x40 if all int values are in the signed short range)
+      - otherwise write 0x00 (+ 0x40 if all int values are in the signed short range)
   - write length
     - as unsigned byte if it's in the range
     - as unsigned short if it's in the range
     - otherwise as int
-  - write int values
+  - write values as short if are in the signed short range. otherwise, write values as int
 
 TAG_LongArray (ID 0x0D)
   - write byte (ADDITIONAL DATA + ID)
     - ADDITIONAL DATA
-      - if length is in the usigned byte range write 0x20
-      - if length is in the usigned short range write 0x10
-      - otherwise write 0x00
+      - if length is in the usigned byte range write 0x20 (+ 0x40 if all int values are in the signed int range)
+      - if length is in the usigned short range write 0x10 (+ 0x40 if all int values are in the signed int range)
+      - otherwise write 0x00 (+ 0x40 if all int values are in the signed int range)
   - write length
     - as unsigned byte if it's in the range
     - as unsigned short if it's in the range
     - otherwise as int
-  - write long values
+  - write values as int if they are in the signed int range. otherwise, write values as long
 
 TAG_FloatArray (ID 0x0E)
   - write byte (ADDITIONAL DATA + ID)

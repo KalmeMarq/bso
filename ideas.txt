@@ -1,0 +1,5 @@
+LongArray can now write values as Int if in range.
+Maybe see if with more byte magic I can also allowed to be able to write short if in range. Maybe even byte.
+
+IntArray can now write values as Short if in range.
+Maybe see if with more byte magic I can also allowed to be able to write byte if in range.
