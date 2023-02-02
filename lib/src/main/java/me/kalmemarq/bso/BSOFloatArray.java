@@ -33,13 +33,8 @@ public final class BSOFloatArray extends AbstractBSOList<BSOFloat> {
     }
     
     @Override
-    public byte getHeldTypeId() {
-        return BSOTypes.FLOAT.getId();
-    }
-
-    @Override
     public void write(DataOutput output) throws IOException {
-        if (!indefiniteLength) BSOUtils.writeLength(output, this.values.length);
+        if (!indefiniteLength) BSOUtil.writeLength(output, this.values.length);
         for (int i = 0; i < this.values.length; i++) {
             output.writeFloat(this.values[i]);
         }
@@ -70,7 +65,7 @@ public final class BSOFloatArray extends AbstractBSOList<BSOFloat> {
     @Override
     public BSOFloat set(int index, BSOFloat value) {
         float b = this.values[index];
-        this.values[index] = value.getValue();
+        this.values[index] = value.asFloat();
         return BSOFloat.of(b);
     }
 
@@ -82,7 +77,7 @@ public final class BSOFloatArray extends AbstractBSOList<BSOFloat> {
                 vls[i] = this.values[j];
                 ++j;
             } else {
-                vls[j] = element.getValue();
+                vls[j] = element.asFloat();
             }
         }
         this.values = vls;
@@ -101,7 +96,24 @@ public final class BSOFloatArray extends AbstractBSOList<BSOFloat> {
     }
 
     @Override
+    public void add(BSOFloat value) {
+        this.add(value.asFloat());
+    }
+
+    /**
+     * Appends float at the end of the list.
+     * @param value Value to be appended
+     */
+    public void add(float value) {
+        float[] vls = new float[this.values.length + 1];
+        System.arraycopy(this.values, 0, vls, 0, this.values.length);
+        vls[vls.length - 1] = value;
+        this.values = vls;
+    }
+
+    @Override
     public BSOFloat get(int index) {
+        if (index >= this.values.length || index < 0) BSOFloat.of(0.0f);
         return BSOFloat.of(this.values[index]);
     }
 

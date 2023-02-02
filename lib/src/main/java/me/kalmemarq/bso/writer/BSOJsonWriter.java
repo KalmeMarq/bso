@@ -62,32 +62,32 @@ public class BSOJsonWriter implements BSOElement.Visitor {
 
     @Override
     public void visitByte(BSOByte element) {
-        output.append(element.numberValue());
+        output.append(element.asByte());
     }
 
     @Override
     public void visitShort(BSOShort element) {
-        output.append(element.numberValue());
+        output.append(element.asShort());
     }
 
     @Override
     public void visitInt(BSOInt element) {
-        output.append(element.numberValue());
+        output.append(element.asInt());
     }
 
     @Override
     public void visitLong(BSOLong element) {
-        output.append(element.numberValue());
+        output.append(element.asLong());
     }
 
     @Override
     public void visitFloat(BSOFloat element) {
-        output.append(element.numberValue());
+        output.append(element.asFloat());
     }
 
     @Override
     public void visitDouble(BSODouble element) {
-        output.append(element.numberValue());
+        output.append(element.asDouble());
     }
 
     @Override
@@ -106,7 +106,7 @@ public class BSOJsonWriter implements BSOElement.Visitor {
         }
 
         int i = 0;
-        for (Map.Entry<String, BSOElement> entry : element.entries()) {
+        for (Map.Entry<String, BSOElement> entry : element.entrySet()) {
             if (style == WriteStyle.BEAUTIFY) {
                 output.append(Strings.repeat(" ", (this.level + 1) * this.indent));
             }

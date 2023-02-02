@@ -31,15 +31,10 @@ public final class BSODoubleArray extends AbstractBSOList<BSODouble> {
     public BSOType<BSODoubleArray> getType() {
         return BSOTypes.DOUBLE_ARRAY;
     }
-    
-    @Override
-    public byte getHeldTypeId() {
-        return BSOTypes.DOUBLE.getId();
-    }
 
     @Override
     public void write(DataOutput output) throws IOException {
-        if (!indefiniteLength) BSOUtils.writeLength(output, this.values.length);
+        if (!indefiniteLength) BSOUtil.writeLength(output, this.values.length);
         for (int i = 0; i < this.values.length; i++) {
             output.writeDouble(this.values[i]);
         }
@@ -70,7 +65,7 @@ public final class BSODoubleArray extends AbstractBSOList<BSODouble> {
     @Override
     public BSODouble set(int index, BSODouble value) {
         double b = this.values[index];
-        this.values[index] = value.getValue();
+        this.values[index] = value.asDouble();
         return BSODouble.of(b);
     }
 
@@ -82,9 +77,26 @@ public final class BSODoubleArray extends AbstractBSOList<BSODouble> {
                 vls[i] = this.values[j];
                 ++j;
             } else {
-                vls[j] = element.getValue();
+                vls[j] = element.asDouble();
             }
         }
+        this.values = vls;
+    }
+
+
+    @Override
+    public void add(BSODouble value) {
+        this.add(value.asDouble());
+    }
+
+    /**
+     * Appends double at the end of the list.
+     * @param value Value to be appended
+     */
+    public void add(double value) {
+        double[] vls = new double[this.values.length + 1];
+        System.arraycopy(this.values, 0, vls, 0, this.values.length);
+        vls[vls.length - 1] = value;
         this.values = vls;
     }
 
@@ -102,6 +114,7 @@ public final class BSODoubleArray extends AbstractBSOList<BSODouble> {
 
     @Override
     public BSODouble get(int index) {
+        if (index >= this.values.length || index < 0) return BSODouble.of(0.0d);
         return BSODouble.of(this.values[index]);
     }
 

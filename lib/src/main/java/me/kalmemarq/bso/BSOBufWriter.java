@@ -58,15 +58,15 @@ public interface BSOBufWriter {
     }
 
     default void writeBSOByte(BSOByte value) throws IOException {
-        writeBEByte(value.getValue());
+        writeBEByte(value.asByte());
     }
 
     default void writeBSOShort(BSOShort value) throws IOException {
-        writeBEShort(value.getValue());
+        writeBEShort(value.asShort());
     }
 
     default void writeBSOInt(BSOInt value) throws IOException {
-        int vl = value.getValue();
+        int vl = value.asInt();
 
         if (vl <= Byte.MAX_VALUE) {
             writeBEByte((byte) (vl & 0xFF));
@@ -78,7 +78,7 @@ public interface BSOBufWriter {
     }
 
     default void writeBSOLong(BSOLong value) throws IOException {
-        long vl = value.getValue();
+        long vl = value.asLong();
 
         if (vl <= Byte.MAX_VALUE) {
             writeBEByte((byte)(vl & 0xFFL));
@@ -92,16 +92,16 @@ public interface BSOBufWriter {
     }
 
     default void writeBSOFloat(BSOFloat value) throws IOException {
-        writeBEFloat(value.getValue());
+        writeBEFloat(value.asFloat());
     }
 
     default void writeBSODouble(BSODouble value) throws IOException {
-        writeBEDouble(value.getValue());
+        writeBEDouble(value.asDouble());
     }
 
     default void writeBSOMap(BSOMap value) throws IOException {
         if (!value.indefiniteLength) {
-            BSOUtils.writeLength(this, value.entries.size());
+            BSOUtil.writeLength(this, value.entries.size());
         }
 
         for (Map.Entry<String, BSOElement> entry : value.entries.entrySet()) {
@@ -117,7 +117,7 @@ public interface BSOBufWriter {
         value.type = value.values.isEmpty() ? BSOTypes.NULL.getId(): value.values.get(0).getTypeId();
 
         writeBEByte(value.type);
-        if (!value.indefiniteLength) BSOUtils.writeLength(this, value.values.size());
+        if (!value.indefiniteLength) BSOUtil.writeLength(this, value.values.size());
 
         for (BSOElement el : value.values) {
             writeBSO(el);
@@ -128,7 +128,7 @@ public interface BSOBufWriter {
 
     default void writeBSOByteArray(BSOByteArray value) throws IOException {
         byte[] vls = value.getByteArray();
-        if (!value.indefiniteLength) BSOUtils.writeLength(this, vls.length);
+        if (!value.indefiniteLength) BSOUtil.writeLength(this, vls.length);
         for (int i = 0; i < vls.length; i++) {
             writeBEByte(vls[i]);
         }
@@ -137,7 +137,7 @@ public interface BSOBufWriter {
 
     default void writeBSOShortArray(BSOShortArray value) throws IOException {
         short[] vls = value.getShortArray();
-        if (!value.indefiniteLength) BSOUtils.writeLength(this, vls.length);
+        if (!value.indefiniteLength) BSOUtil.writeLength(this, vls.length);
         for (int i = 0; i < vls.length; i++) {
             writeBEShort(vls[i]);
         }
@@ -146,7 +146,7 @@ public interface BSOBufWriter {
 
     default void writeBSOIntArray(BSOIntArray value) throws IOException {
         int[] vls = value.getIntArray();
-        if (!value.indefiniteLength) BSOUtils.writeLength(this, vls.length);
+        if (!value.indefiniteLength) BSOUtil.writeLength(this, vls.length);
         for (int i = 0; i < vls.length; i++) {
             writeBEInt(vls[i]);
         }
@@ -155,7 +155,7 @@ public interface BSOBufWriter {
 
     default void writeBSOLongArray(BSOLongArray value) throws IOException {
         long[] vls = value.getLongArray();
-        if (!value.indefiniteLength) BSOUtils.writeLength(this, vls.length);
+        if (!value.indefiniteLength) BSOUtil.writeLength(this, vls.length);
         for (int i = 0; i < vls.length; i++) {
             writeBELong(vls[i]);
         }
@@ -164,7 +164,7 @@ public interface BSOBufWriter {
 
     default void writeBSOFloatArray(BSOFloatArray value) throws IOException {
         float[] vls = value.getFloatArray();
-        if (!value.indefiniteLength) BSOUtils.writeLength(this, vls.length);
+        if (!value.indefiniteLength) BSOUtil.writeLength(this, vls.length);
         for (int i = 0; i < vls.length; i++) {
             writeBEFloat(vls[i]);
         }
@@ -173,7 +173,7 @@ public interface BSOBufWriter {
 
     default void writeBSODoubleArray(BSODoubleArray value) throws IOException {
         double[] vls = value.getDoubleArray();
-        if (!value.indefiniteLength) BSOUtils.writeLength(this, vls.length);
+        if (!value.indefiniteLength) BSOUtil.writeLength(this, vls.length);
         for (int i = 0; i < vls.length; i++) {
             writeBEDouble(vls[i]);
         }

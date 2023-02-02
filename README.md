@@ -79,6 +79,8 @@ StringBSOWriter - writes BSO in a string format
 
 BSOJsonWriter - writes BSO in json format
 
+BSOReader - it has methods to read BSO from a DataInput or InputStream
+
 Both Writers allow to set the indentation and style (minify, spaced minify and beautify).
 
 ## How to write :)
@@ -128,9 +130,15 @@ TAG_Double (ID 0x06)
   - write long (value)
 
 TAG_String (ID 0x07)
-  - write byte (ID)
-  - write short (length)
-  - write modified UTF-8
+  - write byte (ADDITIONAL DATA + ID)
+    - ADDITIONAL DATA
+      - if uses indefinite length (in case length is bigger than 65535) write 0x10
+  - if indefinite length (uses \0 terminator)
+    - write string bytes using charset utf-8
+    - write byte (\0)
+  - otherwise
+    - write short (length)
+    - write modified UTF-8
 
 TAG_Map (ID 0x08)
   - write byte (ADDITIONAL DATA + ID)
@@ -144,7 +152,7 @@ TAG_Map (ID 0x08)
     - as unsigned short if it's in the range
     - otherwise as int
   - write for each element (additional data + id) + key + value
-    - key uses modified UTF-8
+    - key uses string bytes using charset UTF-8 with \0 terminator
   - if it's indefinite length, write TAG_End
 
 TAG_List (ID 0x09)

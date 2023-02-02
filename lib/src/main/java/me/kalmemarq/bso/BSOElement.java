@@ -30,29 +30,48 @@ public interface BSOElement {
     byte DOUBLE_ARRAY_TYPE_ID = 0x0F;
     byte END_TYPE_ID = 0x10;
 
+    /**
+     * Returns this BSO Element byte ID
+     * @return BSO Element byte ID
+     */
     default byte getTypeId() {
         return this.getType().getId();
     }
 
+    /**
+     * Returns this element {@link BSOType}
+     * @return Element {@link BSOType}
+     */
     BSOType<?> getType();
     
     void write(DataOutput output) throws IOException;
 
+    /**
+     * Gets additional data that changes how the element is written and read.
+     */
     default int getAdditionalData() {
         return 0;
     }
 
     void accept(Visitor visitor);
 
+    /**
+     * Returns a copy of the element.
+     * @return Copy of the element
+     */
     BSOElement copy();
 
     String toString();
 
+    /**
+     * Returns {@link BSOElement} as SBSO.
+     * @return {@link BSOElement} as SBSO
+     */
     default String asString() {
         return new StringBSOWriter().apply(this);
     }
 
-    interface Visitor {
+    public interface Visitor {
         void visitNull(BSONull element);
         void visitByte(BSOByte element);
         void visitShort(BSOShort element);

@@ -33,13 +33,8 @@ public final class BSOIntArray extends AbstractBSOList<BSOInt> {
     }
     
     @Override
-    public byte getHeldTypeId() {
-        return BSOTypes.INT.getId();
-    }
-
-    @Override
     public void write(DataOutput output) throws IOException {
-        if (!indefiniteLength) BSOUtils.writeLength(output, this.values.length);
+        if (!indefiniteLength) BSOUtil.writeLength(output, this.values.length);
         for (int i = 0; i < this.values.length; i++) {
             output.writeInt(this.values[i]);
         }
@@ -70,7 +65,7 @@ public final class BSOIntArray extends AbstractBSOList<BSOInt> {
     @Override
     public BSOInt set(int index, BSOInt value) {
         int b = this.values[index];
-        this.values[index] = value.getValue();
+        this.values[index] = value.asInt();
         return BSOInt.of(b);
     }
 
@@ -82,9 +77,25 @@ public final class BSOIntArray extends AbstractBSOList<BSOInt> {
                 vls[i] = this.values[j];
                 ++j;
             } else {
-                vls[j] = element.getValue();
+                vls[j] = element.asInt();
             }
         }
+        this.values = vls;
+    }
+
+    @Override
+    public void add(BSOInt value) {
+        this.add(value.asInt());
+    }
+
+    /**
+     * Appends int at the end of the list.
+     * @param value Value to be appended
+     */
+    public void add(int value) {
+        int[] vls = new int[this.values.length + 1];
+        System.arraycopy(this.values, 0, vls, 0, this.values.length);
+        vls[vls.length - 1] = value;
         this.values = vls;
     }
 
@@ -102,6 +113,7 @@ public final class BSOIntArray extends AbstractBSOList<BSOInt> {
 
     @Override
     public BSOInt get(int index) {
+        if (index >= this.values.length || index < 0) BSOInt.of(0);
         return BSOInt.of(this.values[index]);
     }
 

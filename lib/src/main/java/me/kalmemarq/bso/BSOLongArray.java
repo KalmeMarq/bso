@@ -31,15 +31,10 @@ public final class BSOLongArray extends AbstractBSOList<BSOLong> {
     public BSOType<BSOLongArray> getType() {
         return BSOTypes.LONG_ARRAY;
     }
-    
-    @Override
-    public byte getHeldTypeId() {
-        return BSOTypes.LONG.getId();
-    }
 
     @Override
     public void write(DataOutput output) throws IOException {
-        if (!indefiniteLength) BSOUtils.writeLength(output, this.values.length);
+        if (!indefiniteLength) BSOUtil.writeLength(output, this.values.length);
         for (int i = 0; i < this.values.length; i++) {
             output.writeLong(this.values[i]);
         }
@@ -70,7 +65,7 @@ public final class BSOLongArray extends AbstractBSOList<BSOLong> {
     @Override
     public BSOLong set(int index, BSOLong value) {
         long b = this.values[index];
-        this.values[index] = value.getValue();
+        this.values[index] = value.asLong();
         return BSOLong.of(b);
     }
 
@@ -82,9 +77,25 @@ public final class BSOLongArray extends AbstractBSOList<BSOLong> {
                 vls[i] = this.values[j];
                 ++j;
             } else {
-                vls[j] = element.getValue();
+                vls[j] = element.asLong();
             }
         }
+        this.values = vls;
+    }
+
+    @Override
+    public void add(BSOLong value) {
+        this.add(value.asLong());
+    }
+
+    /**
+     * Appends long at the end of the list.
+     * @param value Value to be appended
+     */
+    public void add(long value) {
+        long[] vls = new long[this.values.length + 1];
+        System.arraycopy(this.values, 0, vls, 0, this.values.length);
+        vls[vls.length - 1] = value;
         this.values = vls;
     }
 
@@ -102,6 +113,7 @@ public final class BSOLongArray extends AbstractBSOList<BSOLong> {
 
     @Override
     public BSOLong get(int index) {
+        if (index >= this.values.length || index < 0) BSOLong.of(0L);
         return BSOLong.of(this.values[index]);
     }
 

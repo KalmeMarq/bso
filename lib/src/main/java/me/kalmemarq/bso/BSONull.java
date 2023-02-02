@@ -22,6 +22,6 @@ public final class BSONull implements BSOElement {
 
     @Override
     public BSOElement copy() {
-        return this;
+        return INSTANCE;
     }
 }

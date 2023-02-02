@@ -6,7 +6,7 @@ import java.io.IOException;
 import me.kalmemarq.bso.BSOType;
 import me.kalmemarq.bso.BSOTypes;
 
-public final class BSOLong extends AbstractBSONumber {
+public final class BSOLong extends AbstractBSONumber implements Comparable<BSOLong> {
     private final long value;
 
     private BSOLong(long value) {
@@ -48,42 +48,38 @@ public final class BSOLong extends AbstractBSONumber {
         return 0;
     }
 
-    public long getValue() {
-      return this.value;
-    }
-
     @Override
-    public byte byteValue() {
+    public byte asByte() {
         return (byte) (this.value & 0xFFL);
     }
 
     @Override
-    public short shortValue() {
+    public short asShort() {
         return (byte) (this.value & 0xFFFFL);
     }
 
     @Override
-    public int intValue() {
+    public int asInt() {
         return (byte) (this.value & 0xFFFFFFFFL);
     }
 
     @Override
-    public long longValue() {
+    public long asLong() {
         return this.value;
     }
 
     @Override
-    public float floatValue() {
+    public float asFloat() {
         return this.value;
     }
 
     @Override
-    public double doubleValue() {
+    public double asDouble() {
         return this.value;
     }
 
     @Override
-    public Number numberValue() {
+    public Number asNumber() {
         return this.value;
     }
 
@@ -112,6 +108,11 @@ public final class BSOLong extends AbstractBSONumber {
     @Override
     public String toString() {
         return this.asString();
+    }
+
+    @Override
+    public int compareTo(BSOLong obj) {
+        return Long.compare(this.value, obj.value);
     }
 
     private static class Cache {

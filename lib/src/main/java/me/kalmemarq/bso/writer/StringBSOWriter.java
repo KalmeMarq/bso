@@ -2,6 +2,7 @@ package me.kalmemarq.bso.writer;
 
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 import com.google.common.base.Strings;
 
@@ -24,6 +25,7 @@ import me.kalmemarq.bso.number.BSOLong;
 import me.kalmemarq.bso.number.BSOShort;
 
 public class StringBSOWriter implements BSOElement.Visitor {
+    private static final Pattern SIMPLE_NAME = Pattern.compile("[a-zA-Z0-9_+-.*]+");
     private final StringBuilder output = new StringBuilder();
     private WriteStyle style = WriteStyle.MINIFY;
     private int indent = 2;
@@ -62,37 +64,37 @@ public class StringBSOWriter implements BSOElement.Visitor {
 
     @Override
     public void visitByte(BSOByte element) {
-        output.append(element.getValue()).append("b");
+        output.append(element.asByte()).append("b");
     }
 
     @Override
     public void visitShort(BSOShort element) {
-        output.append(element.getValue()).append("s");
+        output.append(element.asShort()).append("s");
     }
 
     @Override
     public void visitInt(BSOInt element) {
-        output.append(element.getValue());
+        output.append(element.asInt());
     }
 
     @Override
     public void visitLong(BSOLong element) {
-        output.append(element.getValue()).append("L");
+        output.append(element.asLong()).append("L");
     }
     
     @Override
     public void visitFloat(BSOFloat element) {
-        output.append(element.getValue()).append("f");
+        output.append(element.asFloat()).append("f");
     }
 
     @Override
     public void visitDouble(BSODouble element) {
-        output.append(element.getValue()).append("d");
+        output.append(element.asDouble()).append("d");
     }
 
     @Override
     public void visitString(BSOString element) {
-        output.append('"').append(element.getValue()).append('"');
+        output.append(BSOString.escape(element.getValue()));
     }
 
     @Override
@@ -106,12 +108,12 @@ public class StringBSOWriter implements BSOElement.Visitor {
         }
 
         int i = 0;
-        for (Map.Entry<String, BSOElement> entry : element.entries()) {
+        for (Map.Entry<String, BSOElement> entry : element.entrySet()) {
             if (style == WriteStyle.BEAUTIFY) {
                 output.append(Strings.repeat(" ", (this.level + 1) * this.indent));
             }
 
-            output.append(entry.getKey());
+            output.append(SIMPLE_NAME.matcher(entry.getKey()).matches() ? entry.getKey() : BSOString.escape(entry.getKey()));
 
             if (style != WriteStyle.MINIFY) {
                 output.append(": ");

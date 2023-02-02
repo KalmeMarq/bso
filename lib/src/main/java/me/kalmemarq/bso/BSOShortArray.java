@@ -31,15 +31,10 @@ public final class BSOShortArray extends AbstractBSOList<BSOShort> {
     public BSOType<BSOShortArray> getType() {
         return BSOTypes.SHORT_ARRAY;
     }
-    
-    @Override
-    public byte getHeldTypeId() {
-        return BSOTypes.SHORT.getId();
-    }
 
     @Override
     public void write(DataOutput output) throws IOException {
-        if (!indefiniteLength) BSOUtils.writeLength(output, this.values.length);
+        if (!indefiniteLength) BSOUtil.writeLength(output, this.values.length);
         for (int i = 0; i < this.values.length; i++) {
             output.writeShort(this.values[i]);
         }
@@ -70,7 +65,7 @@ public final class BSOShortArray extends AbstractBSOList<BSOShort> {
     @Override
     public BSOShort set(int index, BSOShort value) {
         short b = this.values[index];
-        this.values[index] = value.getValue();
+        this.values[index] = value.asShort();
         return BSOShort.of(b);
     }
 
@@ -82,9 +77,25 @@ public final class BSOShortArray extends AbstractBSOList<BSOShort> {
                 vls[i] = this.values[j];
                 ++j;
             } else {
-                vls[j] = element.getValue();
+                vls[j] = element.asShort();
             }
         }
+        this.values = vls;
+    }
+
+    @Override
+    public void add(BSOShort value) {
+        this.add(value.asShort());
+    }
+
+    /**
+     * Appends short at the end of the list.
+     * @param value Value to be appended
+     */
+    public void add(short value) {
+        short[] vls = new short[this.values.length + 1];
+        System.arraycopy(this.values, 0, vls, 0, this.values.length);
+        vls[vls.length - 1] = value;
         this.values = vls;
     }
 
@@ -102,6 +113,7 @@ public final class BSOShortArray extends AbstractBSOList<BSOShort> {
 
     @Override
     public BSOShort get(int index) {
+        if (index >= this.values.length || index < 0) BSOShort.of(0);
         return BSOShort.of(this.values[index]);
     }
 

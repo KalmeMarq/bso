@@ -6,7 +6,7 @@ import java.io.IOException;
 import me.kalmemarq.bso.BSOType;
 import me.kalmemarq.bso.BSOTypes;
 
-public final class BSODouble extends AbstractBSONumber {
+public final class BSODouble extends AbstractBSONumber implements Comparable<BSODouble> {
     private final double value;
 
     private BSODouble(double value) {
@@ -27,42 +27,38 @@ public final class BSODouble extends AbstractBSONumber {
         output.writeDouble(this.value);
     }
 
-    public double getValue() {
-      return this.value;
-    }
-
     @Override
-    public byte byteValue() {
+    public byte asByte() {
         return (byte) (floor(this.value) & 0xFF);
     }
 
     @Override
-    public short shortValue() {
+    public short asShort() {
         return (short) (floor(this.value) & 0xFFFF);
     }
 
     @Override
-    public int intValue() {
+    public int asInt() {
         return floor(this.value);
     }
 
     @Override
-    public long longValue() {
+    public long asLong() {
         return (long) this.value;
     }
 
     @Override
-    public float floatValue() {
+    public float asFloat() {
         return (float) this.value;
     }
 
     @Override
-    public double doubleValue() {
+    public double asDouble() {
         return this.value;
     }
 
     @Override
-    public Number numberValue() {
+    public Number asNumber() {
         return this.value;
     }
 
@@ -92,5 +88,10 @@ public final class BSODouble extends AbstractBSONumber {
     @Override
     public String toString() {
         return this.asString();
+    }
+
+    @Override
+    public int compareTo(BSODouble obj) {
+        return Double.compare(this.value, obj.value);
     }
 }

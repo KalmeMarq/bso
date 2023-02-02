@@ -1,6 +1,7 @@
 package me.kalmemarq.bso;
 
 import java.io.DataInput;
+import java.io.DataOutput;
 import java.io.IOException;
 
 public abstract class BSOType<T extends BSOElement> {
@@ -22,4 +23,6 @@ public abstract class BSOType<T extends BSOElement> {
     }
 
     abstract public T read(DataInput input, int additionalData) throws IOException;
+
+    abstract public void write(DataOutput output, T element) throws IOException;
 }
