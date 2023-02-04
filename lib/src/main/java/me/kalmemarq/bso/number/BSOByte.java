@@ -43,6 +43,10 @@ public final class BSOByte extends AbstractBSONumber implements Comparable<BSOBy
         return this.value;
     }
 
+    public int asUByte() {
+        return this.value & 0xFF;
+    }
+
     @Override
     public short asShort() {
         return this.value;

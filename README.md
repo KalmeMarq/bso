@@ -15,10 +15,10 @@ A BSO type can have addditional data which allows to save bytes as much as possi
 | ID   |      Tag     | Name            | Additional Data                                                                                                                                                                                | Min Byte Size                                       | Max Byte Size                                        | Byte Saving (Best case) |
 |------|:------------:|-----------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------|------------------------------------------------------|-------------------------|
 | 0x00 | Null         | TAG_Null        | 0x10 - End (It's a type and a subtype at the same time :/)                                                                                                                                     |                                                     |                                                      |                         |
-| 0x01 | Byte         | TAG_Byte        |                                                                                                                                                                                                | 1 byte                                              | 1 byte                                               |                         |
-| 0x02 | Short        | TAG_Short       | 0x30 - write as byte                                                                                                                                                                           | 1 byte                                              | 2 bytes                                              | 1 byte                  |
-| 0x03 | Int          | TAG_Int         | 0x30 - write as byte<br>0x20 - write as short                                                                                                                                                  | 1 byte                                              | 4 bytes                                              | 3 bytes                 |
-| 0x04 | Long         | TAG_Long        | 0x30 - write as byte<br>0x20 - write as short<br>0x10 - write as int                                                                                                                           | 1 byte                                              | 8 bytes                                              | 7 bytes                 |
+| 0x01 | Byte         | TAG_Byte        | 0x40 - value is unsigned                                                                                                                                                                       | 1 byte                                              | 1 byte                                               |                         |
+| 0x02 | Short        | TAG_Short       | 0x30 - write as byte<br><br>To the above can be added:<br>0x40 - value is unsigned                                                                                                             | 1 byte                                              | 2 bytes                                              | 1 byte                  |
+| 0x03 | Int          | TAG_Int         | 0x30 - write as byte<br>0x20 - write as short<br><br>To the above can be added:<br>0x40 - value is unsigned                                                                                    | 1 byte                                              | 4 bytes                                              | 3 bytes                 |
+| 0x04 | Long         | TAG_Long        | 0x30 - write as byte<br>0x20 - write as short<br>0x10 - write as int<br><br>To the above can be added:<br>0x40 - value is unsigned                                                             | 1 byte                                              | 8 bytes                                              | 7 bytes                 |
 | 0x05 | Float        | TAG_Float       |                                                                                                                                                                                                | 4 bytes                                             | 4 bytes                                              |                         |
 | 0x06 | Double       | TAG_Double      |                                                                                                                                                                                                | 8 bytes                                             | 8 bytes                                              |                         |
 | 0x07 | String       | TAG_String      | 0x10 - use indefinite length<br>Without it the string has a max length of 65535                                                                                                                | (2 * len) + 1 bytes                                 | 2 + (2 * len) bytes                                  | 1 byte                  |
@@ -116,7 +116,8 @@ TAG_Byte (ID 0x01)
 TAG_Short (ID 0x02)
   - write byte (ADDITIONAL DATA + ID)
       - ADDITIONAL DATA
-      - write 0x40 if value is unsigned
+        - if value is in the signed byte range write 0x30 (+ 0x40 if value is unsigned)
+        - otherwise, write 0x00 (+ 0x40 if value is unsigned)
   - write short (value)
 
 TAG_Int (ID 0x03)
@@ -130,10 +131,10 @@ TAG_Int (ID 0x03)
 TAG_Long (ID 0x04)
   - write byte (ADDITIONAL DATA + ID)
     - ADDITIONAL DATA
-      - If value is in the signed byte range write 0x30
-      - If value is in the signed short range write 0x20
-      - If value is in the signed int range write 0x10
-      - otherwuse write 0x00
+      - If value is in the signed byte range write 0x30 (+ 0x40 if value is unsigned)
+      - If value is in the signed short range write 0x20 (+ 0x40 if value is unsigned)
+      - If value is in the signed int range write 0x10 (+ 0x40 if value is unsigned)
+      - otherwuse write 0x00 (+ 0x40 if value is unsigned)
   - write long (value)
 
 TAG_Float (ID 0x05)

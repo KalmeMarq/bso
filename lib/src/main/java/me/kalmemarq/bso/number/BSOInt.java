@@ -59,6 +59,10 @@ public final class BSOInt extends AbstractBSONumber implements Comparable<BSOInt
         return this.value;
     }
 
+    public long asUInt() {
+        return this.value & 0xFFFFFFFFL;
+    }
+
     @Override
     public long asLong() {
         return this.value;

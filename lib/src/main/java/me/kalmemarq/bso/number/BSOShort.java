@@ -47,6 +47,10 @@ public final class BSOShort extends AbstractBSONumber implements Comparable<BSOS
         return this.value;
     }
 
+    public int asUShort() {
+        return this.value & 0xFFFF;
+    }
+
     @Override
     public int asInt() {
         return this.value;
