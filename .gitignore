@@ -1,0 +1,27 @@
+# Ignore Gradle project-specific cache directory
+.gradle
+
+# Ignore Gradle build output directory
+build
+
+.vscode
+
+.DS_Store
+
+bin
+
+.idea
+
+**/src/main/java/me/kalmemarq/bso/Main.java
+
+.vs
+
+BSO/obj
+BSO.Test/obj
+
+packages/
+
+desktop.ini
+
+*.xml
+*.iml
