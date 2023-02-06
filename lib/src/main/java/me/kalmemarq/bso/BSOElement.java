@@ -43,7 +43,14 @@ public interface BSOElement {
      * @return Element {@link BSOType}
      */
     BSOType<?> getType();
-    
+
+    /**
+     * Returns the element byte id plus the additional data. (ID + Additional Data).
+     */
+    default byte getIDAD() {
+        return (byte) (getTypeId() + getAdditionalData());
+    }
+
     void write(DataOutput output) throws IOException;
 
     /**

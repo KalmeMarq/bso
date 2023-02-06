@@ -1,0 +1,190 @@
+Additional Data + ID = IDAD
+
+0x00 null
+  IDAD
+0x10 end
+  IDAD
+
+0x01 int8
+  IDAD + value
+0x41 uint8
+  IDAD + value
+0x51 true
+  IDAD
+0x61 false
+  IDAD
+
+0x02 int16
+  IDAD + value
+0x32 int16 (read/written as int8)
+  IDAD + value
+0x42 uint16
+  IDAD + value
+0x72 uint16 (read/written as uint8)
+  IDAD + value
+
+0x03 int32
+  IDAD + value
+0x23 int32 (read/written as int16)
+  IDAD + value
+0x33 int32 (read/written as int8)
+  IDAD + value
+0x43 uint32
+  IDAD + value
+0x63 uint32 (read/written as uint16)
+  IDAD + value
+0x73 uint32 (read/written as uint8)
+  IDAD + value
+0x13 intX (ID + Arbitrary Size + bytes) // Allows any int size 8, 16, 24, 32, 40, 48, 56, 64, ..., 128, ...
+  IDAD + size + value
+
+0x04 int64
+  IDAD + value
+0x14 int64 (read/written as int32)
+  IDAD + value
+0x24 int64 (read/written as int16)
+  IDAD + value
+0x34 int64 (read/written as int8)
+  IDAD + value
+0x44 uint64
+  IDAD + value
+0x54 uint64 (read/written as uint32)
+  IDAD + value
+0x64 uint64 (read/written as uint16)
+  IDAD + value
+0x74 uint64 (read/written as uint8)
+  IDAD + value
+
+0x05 float32
+  IDAD + value
+0x15 floatX
+  IDAD + size + value
+
+0x06 float64
+  IDAD + value
+
+0x07 string utf8
+  IDAD + uin16 len + bytes
+
+0x08 Map
+  IDAD + int32 len + keys/values
+0x18 Map
+  IDAD + uint16 len + keys/values
+0x28 Map
+  IDAD + uint8 len + keys/values
+0x38 Map
+  IDAD + keys/values + End
+
+0x09 List
+  IDAD + int32 len + (list type + values)?
+0x19 List
+  IDAD + uint16 len + (list type + values)?
+0x29 List
+  IDAD + uint8 len + (list type + values)?
+0x39 List
+  IDAD + (IDAD + value)s + End
+
+0x0A int8 array
+  IDAD + int32 len + values
+0x1A int8 array
+  IDAD + uint16 len + values
+0x2A int8 array
+  IDAD + uint8 len + values
+0x4A uint8 array
+  IDAD + int32 len + values
+0x5A uint8 array
+  IDAD + uint16 len + values
+0x6A uint8 array
+  IDAD + uint8 len + values
+
+0x0B int16 array
+  IDAD + int32 len + values
+0x1B int16 array
+  IDAD + uin16 len + values
+0x2B int16 array
+  IDAD + uint8 len + values
+0x4B int16 array
+  IDAD + int32 len + (value read/written as int8)s
+0x5B int16 array
+  IDAD + uint16 len + (value read/written as int8)s
+0x6B int16 array
+  IDAD + uint8 len + (value read/written as int8)s
+
+0x0C int32 array
+  IDAD + int32 len + values
+0x1C int32 array
+  IDAD + uint16 len + values
+0x2C int32 array
+  IDAD + uint8 len + values
+0x4C int32 array
+  IDAD + int32 len + (value read/written as int16)s
+0x5C int32 array
+  IDAD + uin16 len + (value read/written as int16)s
+0x6C int32 array
+  IDAD + uint8 len + (value read/written as int16)s
+0x8C int32 array
+  IDAD + int32 len + (value read/written as int8)s
+0x9C int32 array
+  IDAD + uint16 len + (value read/written as int8)s
+0xFC int32 array
+  IDAD + uint8 len + (value read/written as int8)s
+
+0x0D int64 array
+  IDAD + int32 len + values
+0x1D int64 array
+  IDAD + uint16 len + values
+0x3D int64
+  IDAD + uint8 len + values
+0x4D
+  IDAD + int32 len + (value read/written as int32)s
+0x5D
+  IDAD + uint16 len + (value read/written as int32)s
+0x6D
+  IDAD + uint8 len + (value read/written as int32)s
+0x8D
+  IDAD + int32 len + (value read/written as int16)s
+0x9D
+  IDAD + uint16 len + (value read/written as int16)s
+0xFD
+  IDAD + uint8 len + (value read/written as int16)s 
+
+0x0E float32 array
+  IDAD + int32 len + values
+0x1E float32 array
+  IDAD + uint16 len + values
+0x2E float32 array
+  IDAD + uint8 len + values
+
+0x0F float64 array
+  IDAD + int32 len + values
+0x1F float64 array
+  IDAD + uint16 len + values
+0x2F float64 array
+  IDAD + uint8 len + values
+
+
+
+Query (only map stuff)
+
+map = {
+  "level": {
+    "gen": {
+      "seed": 69L
+    },
+    "version": 20
+  }
+}
+
+BSOQueryCollector(
+  BSOQuery("level/gen", BSOTypes.LONG, "seed"),
+  BSOQuery("level", BSOTypes.INT, "version")
+).collect(map)
+
+collects from a BSOMap directly or from a file
+
+allow little endianess (ofc u need to be aware of which one the file u're reading is)
+
+compression
+  none
+  gzip
+  zlib (new)

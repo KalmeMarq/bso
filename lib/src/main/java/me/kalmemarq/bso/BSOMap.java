@@ -53,7 +53,7 @@ public class BSOMap implements BSOElement, Iterable<Map.Entry<String, BSOElement
         }
 
         for (Entry<String, BSOElement> entry : this.entries.entrySet()) {
-            output.writeByte(entry.getValue().getTypeId() + entry.getValue().getAdditionalData());
+            output.writeByte(entry.getValue().getIDAD());
 //            output.writeUTF(entry.getKey());
             BSOUtil.writeIndefiniteUTF8(output, entry.getKey());
             entry.getValue().write(output);

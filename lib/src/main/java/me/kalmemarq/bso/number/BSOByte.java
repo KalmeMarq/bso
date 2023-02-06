@@ -9,11 +9,21 @@ import me.kalmemarq.bso.BSOTypes;
 public final class BSOByte extends AbstractBSONumber implements Comparable<BSOByte> {
     public static final BSOByte ZERO = BSOByte.of((byte)0);
     public static final BSOByte ONE = BSOByte.of((byte)1);
+    public static final BSOByte TRUE = new BSOByte(true);
+    public static final BSOByte FALSE = new BSOByte(false);
     
     private final byte value;
 
+    private final boolean isBool;
+
     private BSOByte(byte value) {
         this.value = value;
+        this.isBool = false;
+    }
+
+    private BSOByte(boolean value) {
+        this.value = (byte)(value ? 1 : 0);
+        this.isBool = true;
     }
 
     public static BSOByte of(int value) {
@@ -25,7 +35,7 @@ public final class BSOByte extends AbstractBSONumber implements Comparable<BSOBy
     }
 
     public static BSOByte of(boolean value) {
-        return value ? ONE : ZERO;
+        return value ? TRUE : FALSE;
     }
 
     @Override
@@ -35,7 +45,12 @@ public final class BSOByte extends AbstractBSONumber implements Comparable<BSOBy
 
     @Override
     public void write(DataOutput output) throws IOException {
-        output.writeByte(this.value);
+        if (!isBool) output.writeByte(this.value);
+    }
+
+    @Override
+    public int getAdditionalData() {
+        return isBool ? value != 0 ? 0x50 : 0x60 : 0;
     }
 
     @Override

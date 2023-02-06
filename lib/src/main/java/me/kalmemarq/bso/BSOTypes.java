@@ -30,6 +30,8 @@ public class BSOTypes {
     public static final BSOType<BSOByte> BYTE = new BSOType<>(BSOElement.BYTE_TYPE_ID, "TAG_Byte") {
         @Override
         public BSOByte read(DataInput input, int additionalData) throws IOException {
+            if (additionalData == 0x50) return BSOByte.TRUE; 
+            else if (additionalData == 0x60) return BSOByte.FALSE; 
             return BSOByte.of(input.readByte());
         }
 

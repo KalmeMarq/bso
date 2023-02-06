@@ -67,7 +67,7 @@ public final class BSOIo {
     }
 
     private static void write(BSOElement element, DataOutput outputStream) throws IOException {
-        outputStream.writeByte(element.getTypeId() + element.getAdditionalData());
+        outputStream.writeByte(element.getIDAD());
         element.write(outputStream);
     }
 
