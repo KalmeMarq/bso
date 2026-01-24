@@ -1,4 +1,4 @@
-package io.github.kalmemarq.bso;
+package io.gitlab.kalmemarq.bso;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
