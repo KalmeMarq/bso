@@ -35,6 +35,7 @@ public final class SBsoUtils {
         return b.toString();
     }
 
+    @SuppressWarnings("unchecked")
     private static void stringify(StringBuilder builder, BsoNode node, int level, SBsoWriteOptions options) {
         switch (node) {
             case BsoMissing _ -> throw new IllegalArgumentException("BsoMissing is not allowed");
@@ -203,6 +204,7 @@ public final class SBsoUtils {
                 }
                 builder.append(']');
             }
+            case BsoCustom<?> n -> builder.append('(').append(n.type().getName()).append(';').append(((BsoCustom<Object>) n).type().write((BsoCustom<Object>) n)).append(')');
         }
     }
 

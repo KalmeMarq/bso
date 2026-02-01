@@ -39,12 +39,12 @@ public class LittleEndianDataOutput implements DataOutput, AutoCloseable {
 
     @Override
     public void writeShort(int v) throws IOException {
-        this.output.writeShort((v & 0xFF << 8) | (v >> 8) & 0xFF);
+        this.output.writeShort(((v & 0xFF) << 8) | (v >> 8) & 0xFF);
     }
 
     @Override
     public void writeChar(int v) throws IOException {
-        this.output.writeChar((v & 0xFF << 8) | (v >> 8) & 0xFF);
+        this.output.writeChar(((v & 0xFF) << 8) | (v >> 8) & 0xFF);
     }
 
     @Override

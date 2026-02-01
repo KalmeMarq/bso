@@ -108,4 +108,20 @@ public final class BsoList implements BsoNode {
     public int hashCode() {
         return this.list.hashCode();
     }
+
+    @Override
+    public String toString() {
+        StringBuilder b = new StringBuilder();
+        b.append('[');
+        if (!this.list.isEmpty()) {
+            for (int i = 0, len = this.list.size(); i < len; ++i) {
+                if (i != 0) b.append(", ");
+                BsoNode node = this.list.get(i);
+                if (node == this) b.append("[this]");
+                else b.append(this.list.get(i).toString());
+            }
+        }
+        b.append(']');
+        return b.toString();
+    }
 }

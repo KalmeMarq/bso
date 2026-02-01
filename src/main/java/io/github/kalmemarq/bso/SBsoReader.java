@@ -1,5 +1,7 @@
 package io.github.kalmemarq.bso;
 
+import io.github.kalmemarq.bso.BsoCustom.BsoCustomType;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -52,12 +54,62 @@ public class SBsoReader {
             case '"' -> {
                 return this.readString();
             }
+            case '(' -> {
+                return this.readCustom();
+            }
         }
 
         return null;
     }
 
-    private int readNum(StringBuilder b) throws IOException {
+    private BsoNode readCustom() throws IOException {
+        this.read();
+        this.skipWhitespace();
+        if (this.readChar(')')) {
+            return new BsoMap();
+        }
+
+        StringBuilder nb = new StringBuilder();
+        while (this.currChr != ';' && this.currChr != -1) {
+            nb.append((char) this.currChr);
+            this.read();
+
+            if (this.isWhitespace()) {
+                this.skipWhitespace();
+                if (this.readChar(')')) {
+                    return new BsoMap();
+                } else {
+                    this.readExpected(';');
+                }
+            }
+        }
+
+        if (this.currChr == ';') {
+            this.read();
+        }
+
+        this.skipWhitespace();
+
+        BsoCustomType<?> customType = BsoUtils.customTypeByName.get(nb.toString());
+        if (customType != null) {
+            int beginLine = this.line;
+            int beginColumn = this.column;
+
+            BsoNode node;
+            try {
+                node = customType.parse(this);
+            } catch (Exception e) {
+                throw new SBsoParseException(e.getMessage(), beginLine, beginColumn);
+            }
+            this.skipWhitespace();
+            this.readExpected(')');
+            return node;
+        }
+
+        throw new SBsoParseException("Failed to parse custom type", this.line, this.column);
+    }
+
+    public int readNum(StringBuilder b) throws IOException {
         boolean minus = this.currChr == '-';
         if (minus) {
             b.append('-');
@@ -111,7 +163,7 @@ public class SBsoReader {
         return (decimal ? 1 << 16 : 0) | radix;
     }
 
-    private BsoNode readNumber() throws IOException {
+    public BsoNode readNumber() throws IOException {
         StringBuilder b = new StringBuilder();
 
         int res = this.readNum(b);
@@ -382,9 +434,7 @@ public class SBsoReader {
             this.skipWhitespace();
             this.readExpected(']');
             return hasUnsignedMark ? new BsoUByteArray(Arrays.copyOf(array, i)) : new BsoByteArray(Arrays.copyOf(array, i));
-        }
-
-        if (this.readChar('S')) {
+        } else if (this.readChar('S')) {
             this.readExpected(';');
             this.skipWhitespace();
             if (this.readChar(']')) {
@@ -405,7 +455,7 @@ public class SBsoReader {
                 if (i + 1 >= array.length)
                     array = Arrays.copyOf(array, array.length * 2);
 
-                array[i++] = Short.parseShort(b.toString(), radix);
+                array[i++] = hasUnsignedMark ? (short) Integer.parseUnsignedInt(b.toString(), radix) : Short.parseShort(b.toString(), radix);
 
                 this.skipWhitespaceNoNL();
 
@@ -422,9 +472,7 @@ public class SBsoReader {
             this.skipWhitespace();
             this.readExpected(']');
             return new BsoShortArray(Arrays.copyOf(array, i));
-        }
-
-        if (this.readChar('I')) {
+        } else if (this.readChar('I')) {
             this.readExpected(';');
             this.skipWhitespace();
             if (this.readChar(']')) {
@@ -445,7 +493,7 @@ public class SBsoReader {
                 if (i + 1 >= array.length)
                     array = Arrays.copyOf(array, array.length * 2);
 
-                array[i++] = Integer.parseInt(b.toString(), radix);
+                array[i++] = hasUnsignedMark ? Integer.parseUnsignedInt(b.toString(), radix) : Integer.parseInt(b.toString(), radix);
 
                 this.skipWhitespaceNoNL();
 
@@ -462,9 +510,7 @@ public class SBsoReader {
             this.skipWhitespace();
             this.readExpected(']');
             return new BsoIntArray(Arrays.copyOf(array, i));
-        }
-
-        if (this.readChar('L')) {
+        } else if (this.readChar('L')) {
             this.readExpected(';');
             this.skipWhitespace();
             if (this.readChar(']')) {
@@ -485,7 +531,7 @@ public class SBsoReader {
                 if (i + 1 >= array.length)
                     array = Arrays.copyOf(array, array.length * 2);
 
-                array[i++] = Long.parseLong(b.toString(), radix);
+                array[i++] = hasUnsignedMark ? Long.parseUnsignedLong(b.toString(), radix) : Long.parseLong(b.toString(), radix);
 
                 this.skipWhitespaceNoNL();
 
@@ -502,9 +548,7 @@ public class SBsoReader {
             this.skipWhitespace();
             this.readExpected(']');
             return new BsoLongArray(Arrays.copyOf(array, i));
-        }
-
-        if (this.readChar('F')) {
+        } else if (this.readChar('F')) {
             this.readExpected(';');
             this.skipWhitespace();
             if (this.readChar(']')) {
@@ -541,9 +585,7 @@ public class SBsoReader {
             this.skipWhitespace();
             this.readExpected(']');
             return new BsoFloatArray(Arrays.copyOf(array, i));
-        }
-
-        if (this.readChar('D')) {
+        } else if (this.readChar('D')) {
             this.readExpected(';');
             this.skipWhitespace();
             if (this.readChar(']')) {
@@ -606,7 +648,7 @@ public class SBsoReader {
         return new BsoList(list);
     }
 
-    private BsoNode readFalse() throws IOException {
+    public BsoNode readFalse() throws IOException {
         this.read();
         this.readExpected('a');
         this.readExpected('l');
@@ -615,7 +657,7 @@ public class SBsoReader {
         return BsoBool.FALSE;
     }
 
-    private BsoNode readTrue() throws IOException {
+    public BsoNode readTrue() throws IOException {
         this.read();
         this.readExpected('r');
         this.readExpected('u');
@@ -623,7 +665,7 @@ public class SBsoReader {
         return BsoBool.TRUE;
     }
 
-    private void read() throws IOException {
+    public void read() throws IOException {
         if (this.currChr == '\n') {
             this.column = 1;
             ++this.line;
@@ -633,7 +675,11 @@ public class SBsoReader {
         this.currChr = this.reader.read();
     }
 
-    private boolean readChar(char chr) throws IOException {
+    public int currChr() {
+        return this.currChr;
+    }
+
+    public boolean readChar(char chr) throws IOException {
         if (this.currChr == chr) {
             this.read();
             return true;
@@ -641,50 +687,50 @@ public class SBsoReader {
         return false;
     }
 
-    private void readExpected(char chr) throws IOException {
+    public void readExpected(char chr) throws IOException {
         if (this.currChr != chr) {
             throw new SBsoParseException("Expected " + chr + " found " + (char) this.currChr, this.line, this.column);
         }
         this.read();
     }
 
-    private void skipWhitespace() throws IOException {
+    public void skipWhitespace() throws IOException {
         while (this.isWhitespace()) {
             this.read();
         }
     }
 
-    private void skipWhitespaceNoNL() throws IOException {
+    public void skipWhitespaceNoNL() throws IOException {
         while (this.isWhitespaceNoNL()) {
             this.read();
         }
     }
 
-    private boolean isWhitespace() {
+    public boolean isWhitespace() {
         return this.currChr == ' ' || this.currChr == '\t' || this.currChr == '\r' || this.currChr == '\n';
     }
 
-    private boolean isWhitespaceNoNL() {
+    public boolean isWhitespaceNoNL() {
         return this.currChr == ' ' || this.currChr == '\t' || this.currChr == '\r';
     }
 
-    private boolean isNoQuoteKey() {
+    public boolean isNoQuoteKey() {
         return (this.currChr >= 'a' && this.currChr <= 'z') || (this.currChr >= 'A' && this.currChr <= 'Z') || this.currChr == '_' || this.currChr == '.';
     }
 
-    private boolean isBinaryDigit() {
+    public boolean isBinaryDigit() {
         return this.currChr == '0' || this.currChr == '1';
     }
 
-    private boolean isDigit() {
+    public boolean isDigit() {
         return (this.currChr >= '0' && this.currChr <= '9');
     }
 
-    private boolean isHexDigit() {
+    public boolean isHexDigit() {
         return (this.currChr >= '0' && this.currChr <= '9') || (this.currChr >= 'a' && this.currChr <= 'z') || (this.currChr >= 'A' && this.currChr <= 'Z');
     }
 
-    private boolean isPossibleNumericTypeIndicator() {
+    public boolean isPossibleNumericTypeIndicator() {
         return this.currChr == 'i' || this.currChr == 'f' || this.currChr == 'd' || this.currChr == 'l' || this.currChr == 's' || this.currChr == 'u' || this.currChr == 'b';
     }
 

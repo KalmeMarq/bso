@@ -96,7 +96,6 @@ true
 0l
 0sl
 0f
-0f
 0d
 
 {}
@@ -114,4 +113,18 @@ true
 XXXX ____ version
 ____ X___ Compression method (0 - none, 1 - gzip)
 ____ _X__ Endianess (0 - big, 1 - little)
+
+Map
+
+Key table
+
+"time"
+"index"
+
+s32 0 69
+s32 1 420
+
+
+25c2 f0e1 b3b1 4543
+bfd0 2ce2 8669 262f
 
