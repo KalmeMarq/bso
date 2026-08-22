@@ -49,8 +49,28 @@ public final class SBsoUtils {
             case BsoULong(long value) -> builder.append(Long.toUnsignedString(value)).append("ul");
             case BsoFloat(float value) -> builder.append(value).append("f");
             case BsoDouble(double value) -> builder.append(value).append("d");
-            case BsoBool(boolean value) -> builder.append(value ? "true" : "false");
-            case BsoString(String value) -> builder.append('"').append(escapeString(value)).append('"');
+            case BsoBool(boolean value) -> builder.append(value);
+            case BsoString(String value) -> {
+                if (options.smartMultilineText() && options.indent() > 0 && value.indexOf('\n') != -1) {
+                    builder.repeat('"', 3).append('\n');
+
+                    String[] lines = value.split("\n");
+                    int i = 0;
+                    for (String line : lines) {
+                        builder.repeat(' ', (level + 1) * options.indent());
+                        builder.append(line);
+                        if (i < lines.length - 1) {
+
+                            builder.append('\n');
+                        }
+                        ++i;
+                    }
+
+                    builder.repeat('"', 3);
+                } else {
+                    builder.append('"').append(escapeString(value)).append('"');
+                }
+            }
             case BsoMap n -> {
                 builder.append('{');
                 if (n.isEmpty()) {
@@ -76,7 +96,7 @@ public final class SBsoUtils {
                     ++i;
                 }
 
-                if (options.indent() > 0) builder.append('\n');
+                if (options.indent() > 0) builder.append('\n').repeat(' ', (level) * options.indent());
                 builder.append('}');
             }
             case BsoList n -> {
@@ -86,12 +106,49 @@ public final class SBsoUtils {
                     break;
                 }
 
+
+                boolean isAllPrimitives = options.smartNewLines();
+                if (isAllPrimitives) {
+                    for  (int i = 0; i < n.size(); i++) {
+                        if (n.get(i) instanceof BsoPrimitive) {
+                            continue;
+                        }
+
+                        if (n.get(i) instanceof BsoMap map && map.isEmpty()) {
+                            continue;
+                        }
+
+                        if (n.get(i) instanceof BsoList list && list.isEmpty()) {
+                            continue;
+                        }
+
+                        isAllPrimitives = false;
+                        break;
+                    }
+                }
+
+                if (!isAllPrimitives && options.indent() > 0) builder.append('\n');
+
                 int i = 0;
                 for (var value : n) {
-                    if (i != 0) builder.append(',');
+                    if (i != 0) {
+                        if (!isAllPrimitives && options.indent() > 0) {
+                            builder.append('\n');
+                        } else {
+                            builder.append(',');
+                            if (isAllPrimitives && options.indent() > 0) builder.append(' ');
+                        }
+                    }
+
+                    if (!isAllPrimitives && options.indent() > 0) {
+                        builder.repeat(' ', (level + 1) * options.indent());
+                    }
+
                     stringify(builder, value, level + 1, options);
                     ++i;
                 }
+
+                if (!isAllPrimitives && options.indent() > 0) builder.append('\n').repeat(' ', (level) * options.indent());
                 builder.append(']');
             }
             case BsoByteArray(byte[] values) -> {
@@ -224,8 +281,8 @@ public final class SBsoUtils {
     }
 
     private static boolean isNakedKeyChar(int index, char chr) {
-        boolean res = (chr >= 'a' && chr <= 'z') || (chr >= 'A' && chr <= 'Z') || chr == '_' || chr == '$';
-        if (index != 0 && !res) res = (chr >= '0' && chr <= '9') || chr == '.';
+        boolean res = (chr >= 'a' && chr <= 'z') || (chr >= 'A' && chr <= 'Z') || chr == '_' || chr == '$' || chr == '#' || chr == '.';
+        if (index != 0 && !res) res = (chr >= '0' && chr <= '9') || chr == '-';
         return res;
     }
 
@@ -241,6 +298,8 @@ public final class SBsoUtils {
                 b.append("\\r");
             } else if (chr == '\f') {
                 b.append("\\f");
+            } else if (chr == '\b') {
+                b.append("\\b");
             } else if (chr == '"') {
                 b.append("\\\"");
             } else {

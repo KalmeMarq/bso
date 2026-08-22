@@ -268,9 +268,11 @@ public class SBsoReader {
             }
             this.readExpected('"');
         } else {
-            while (this.isNoQuoteKey()) {
+            int i = 0;
+            while (this.isNoQuoteKey() || (i > 0 && (this.isDigit() || this.currChr == '-'))) {
                 b.append((char) this.currChr);
                 this.read();
+                ++i;
             }
         }
         return b.toString();
@@ -715,7 +717,7 @@ public class SBsoReader {
     }
 
     public boolean isNoQuoteKey() {
-        return (this.currChr >= 'a' && this.currChr <= 'z') || (this.currChr >= 'A' && this.currChr <= 'Z') || this.currChr == '_' || this.currChr == '.';
+        return (this.currChr >= 'a' && this.currChr <= 'z') || (this.currChr >= 'A' && this.currChr <= 'Z') || this.currChr == '_' || this.currChr == '.' || this.currChr == '$' || this.currChr == '#';
     }
 
     public boolean isBinaryDigit() {

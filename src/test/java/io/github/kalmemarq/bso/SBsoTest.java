@@ -2,8 +2,10 @@ package io.github.kalmemarq.bso;
 
 import io.github.kalmemarq.bso.custom.UUIDType;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.io.IOException;
 import java.util.UUID;
 
 public class SBsoTest {
@@ -19,7 +21,7 @@ public class SBsoTest {
         hobbies.addString("sleeping a ton");
         map.put("hobbies", hobbies);
 
-        String expected = "{age:21sb,name:\"Kalme\",\".hey.\":0.55f,hobbies:[\"coding\",\"sleeping a ton\"]}";
+        String expected = "{age:21sb,name:\"Kalme\",.hey.:0.55f,hobbies:[\"coding\",\"sleeping a ton\"]}";
 
         Assertions.assertEquals(expected.length(), SBsoUtils.stringify(map).length());
     }
@@ -34,5 +36,15 @@ public class SBsoTest {
         Assertions.assertEquals("(uuid;3df8b598-0c8c-4e0f-af96-b107f3b9934a)", SBsoUtils.stringify(node));
 
         BsoUtils.unregisterAllCustomTypes();
+    }
+
+    @Test
+    void smartMultilineText() throws IOException {
+        BsoMap map = new BsoMap();
+        map.putString("text", "Hey brother\nHow are you?");
+
+        BsoNode map1 = SBsoUtils.read(SBsoUtils.stringify(map, SBsoWriteOptions.PRETTY_SMART));
+
+        Assertions.assertEquals(map.get("text").asString(), map1.get("text").asString());
     }
 }
