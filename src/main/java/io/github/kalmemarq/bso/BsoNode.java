@@ -117,7 +117,7 @@ public sealed interface BsoNode extends Iterable<BsoNode> permits BsoByteArray, 
     }
 
     default boolean asBool(boolean defaultValue) {
-        return this.asNumber(defaultValue ? 0 : 1).byteValue() != 0;
+        return this.asNumber(defaultValue ? 1 : 0).byteValue() != 0;
     }
 
     default String asString() {
@@ -174,5 +174,11 @@ public sealed interface BsoNode extends Iterable<BsoNode> permits BsoByteArray, 
 
     default double[] asDoubleArray(double[] values) {
         return values;
+    }
+
+    //
+
+    default boolean isMissing() {
+        return false;
     }
 }

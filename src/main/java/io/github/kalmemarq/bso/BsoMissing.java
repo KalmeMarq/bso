@@ -7,4 +7,9 @@ public record BsoMissing() implements BsoNode {
     public BsoNode copy() {
         return this;
     }
+
+    @Override
+    public boolean isMissing() {
+        return true;
+    }
 }
