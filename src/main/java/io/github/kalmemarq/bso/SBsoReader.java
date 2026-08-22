@@ -364,6 +364,7 @@ public class SBsoReader {
                     case 'r' -> b.append('\r');
                     case 'f' -> b.append('\f');
                     case 'b' -> b.append('\b');
+                    case '"' -> b.append('"');
                     case 'u' -> {
                         char[] chars = new char[4];
                         for (int i = 0; i < 4; i++) {
