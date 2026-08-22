@@ -51,6 +51,10 @@ public final class BsoMap implements BsoNode {
         this.map.put(name, new BsoUByte((byte) (value & 0xFF)));
     }
 
+    public void putBool(String name, boolean value) {
+        this.map.put(name, value ? BsoBool.TRUE : BsoBool.FALSE);
+    }
+
     public void putShort(String name, int value) {
         this.map.put(name, new BsoShort((short) value));
     }
