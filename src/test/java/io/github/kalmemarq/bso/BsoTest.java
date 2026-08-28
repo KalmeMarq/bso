@@ -77,6 +77,19 @@ public class BsoTest {
     }
 
     @Test
+    void binaryRoundtripUnsignedAndDoubleArraysWithShortLength() throws IOException {
+        int length = 256;
+        BsoMap map = new BsoMap();
+        map.put("uba", new BsoUByteArray(new byte[length]));
+        map.put("usa", new BsoUShortArray(new short[length]));
+        map.put("uia", new BsoUIntArray(new int[length]));
+        map.put("ula", new BsoULongArray(new long[length]));
+        map.put("da", new BsoDoubleArray(new double[length]));
+
+        assertBinaryRoundtrip(map);
+    }
+
+    @Test
     void binaryRoundtripLittleEndian() throws IOException {
         BsoMap map = new BsoMap();
         map.putInt("i", 0x01020304);

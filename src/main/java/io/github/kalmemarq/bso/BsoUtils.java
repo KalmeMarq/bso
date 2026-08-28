@@ -269,7 +269,7 @@ public class BsoUtils {
 
                     return new BsoString(new String(buf, 0, cur, StandardCharsets.UTF_8));
                 } else {
-                    int length = ad == 0b0100 ? in.readInt() : ad == 0b0010 ? in.readUnsignedShort() : in.readUnsignedByte();
+                    int length = readLength(in, ad);
                     byte[] buf = new byte[length];
                     in.readFully(buf, 0, buf.length);
                     return new BsoString(new String(buf, StandardCharsets.UTF_8));
@@ -278,7 +278,7 @@ public class BsoUtils {
             case 0b0111 -> {
                 Map<String, BsoNode> map;
 
-                int length = ad == 0b0100 ? in.readInt() : ad == 0b0010 ? in.readUnsignedShort() : in.readUnsignedByte();
+                int length = readLength(in, ad);
                 map = new HashMap<>(length);
 
                 for (int i = 0; i < length; ++i) {
@@ -296,7 +296,7 @@ public class BsoUtils {
             case 0b1000 -> {
                 List<BsoNode> list;
 
-                int length = ad == 0b0100 ? in.readInt() : ad == 0b0010 ? in.readUnsignedShort() : in.readUnsignedByte();
+                int length = readLength(in, ad);
                 list = new ArrayList<>(length);
 
                 for (int i = 0; i < length; ++i) {
@@ -311,14 +311,14 @@ public class BsoUtils {
                 return new BsoList(list);
             }
             case 0b1001 -> {
-                int length = ad == 0b0100 ? in.readInt() : ad == 0b0010 ? in.readUnsignedShort() : in.readUnsignedByte();
+                int length = readLength(in, ad);
                 byte[] array = new byte[length];
                 in.readFully(array, 0, array.length);
 
                 return (ad & 0b0001) == 0 ? new BsoByteArray(array) : new BsoUByteArray(array);
             }
             case 0b1010 -> {
-                int length = ad == 0b0100 ? in.readInt() : ad == 0b0010 ? in.readUnsignedShort() : in.readUnsignedByte();
+                int length = readLength(in, ad);
                 short[] array = new short[length];
                 for (int i = 0; i < length; ++i) {
                     array[i] = in.readShort();
@@ -327,7 +327,7 @@ public class BsoUtils {
                 return (ad & 0b0001) == 0 ? new BsoShortArray(array) : new BsoUShortArray(array);
             }
             case 0b1011 -> {
-                int length = ad == 0b0100 ? in.readInt() : ad == 0b0010 ? in.readUnsignedShort() : in.readUnsignedByte();
+                int length = readLength(in, ad);
                 int[] array = new int[length];
                 for (int i = 0; i < length; ++i) {
                     array[i] = in.readInt();
@@ -336,7 +336,7 @@ public class BsoUtils {
                 return (ad & 0b0001) == 0 ? new BsoIntArray(array) : new BsoUIntArray(array);
             }
             case 0b1100 -> {
-                int length = ad == 0b0100 ? in.readInt() : ad == 0b0010 ? in.readUnsignedShort() : in.readUnsignedByte();
+                int length = readLength(in, ad);
                 long[] array = new long[length];
                 for (int i = 0; i < length; ++i) {
                     array[i] = in.readLong();
@@ -345,7 +345,7 @@ public class BsoUtils {
                 return (ad & 0b0001) == 0 ? new BsoLongArray(array) : new BsoULongArray(array);
             }
             case 0b1101 -> {
-                int length = ad == 0b0100 ? in.readInt() : ad == 0b0010 ? in.readUnsignedShort() : in.readUnsignedByte();
+                int length = readLength(in, ad);
                 if ((ad & 0b0001) == 0) {
                     float[] array = new float[length];
                     for (int i = 0; i < length; ++i) {
@@ -638,6 +638,17 @@ public class BsoUtils {
                 }
             }
             case BsoCustom<?> n -> ((BsoCustom<Object>) n).type().write(out, (BsoCustom<Object>) n);
+        }
+    }
+
+    private static int readLength(DataInput in, int ad) throws IOException {
+        int size = ad & 0b0110;
+        if (size == 0b0100) {
+            return in.readInt();
+        } else if (size == 0b0010) {
+            return in.readUnsignedShort();
+        } else {
+            return in.readUnsignedByte();
         }
     }
 

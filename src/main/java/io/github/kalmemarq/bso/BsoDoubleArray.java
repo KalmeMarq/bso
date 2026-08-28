@@ -9,6 +9,11 @@ public record BsoDoubleArray(double[] values) implements BsoNode {
     }
 
     @Override
+    public int size() {
+        return this.values.length;
+    }
+
+    @Override
     public BsoNode copy() {
         return new BsoDoubleArray(Arrays.copyOf(this.values, this.values.length));
     }

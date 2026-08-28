@@ -9,6 +9,11 @@ public record BsoLongArray(long[] values) implements BsoNode {
     }
 
     @Override
+    public int size() {
+        return this.values.length;
+    }
+
+    @Override
     public BsoNode copy() {
         return new BsoLongArray(Arrays.copyOf(this.values, this.values.length));
     }
