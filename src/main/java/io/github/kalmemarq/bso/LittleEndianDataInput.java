@@ -69,12 +69,12 @@ public class LittleEndianDataInput implements DataInput, AutoCloseable {
 
     @Override
     public float readFloat() throws IOException {
-        return Float.intBitsToFloat(this.readInt());
+        return Float.intBitsToFloat(Integer.reverseBytes(this.input.readInt()));
     }
 
     @Override
     public double readDouble() throws IOException {
-        return Double.longBitsToDouble(this.readLong());
+        return Double.longBitsToDouble(Long.reverseBytes(this.input.readLong()));
     }
 
     @Override

@@ -474,7 +474,7 @@ public class SBsoReader {
 
             this.skipWhitespace();
             this.readExpected(']');
-            return new BsoShortArray(Arrays.copyOf(array, i));
+            return hasUnsignedMark ? new BsoUShortArray(Arrays.copyOf(array, i)) : new BsoShortArray(Arrays.copyOf(array, i));
         } else if (this.readChar('I')) {
             this.readExpected(';');
             this.skipWhitespace();
@@ -512,7 +512,7 @@ public class SBsoReader {
 
             this.skipWhitespace();
             this.readExpected(']');
-            return new BsoIntArray(Arrays.copyOf(array, i));
+            return hasUnsignedMark ? new BsoUIntArray(Arrays.copyOf(array, i)) : new BsoIntArray(Arrays.copyOf(array, i));
         } else if (this.readChar('L')) {
             this.readExpected(';');
             this.skipWhitespace();
@@ -550,7 +550,7 @@ public class SBsoReader {
 
             this.skipWhitespace();
             this.readExpected(']');
-            return new BsoLongArray(Arrays.copyOf(array, i));
+            return hasUnsignedMark ? new BsoULongArray(Arrays.copyOf(array, i)) : new BsoLongArray(Arrays.copyOf(array, i));
         } else if (this.readChar('F')) {
             this.readExpected(';');
             this.skipWhitespace();

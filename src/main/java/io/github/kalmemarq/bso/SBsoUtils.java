@@ -229,7 +229,7 @@ public final class SBsoUtils {
                 builder.append(']');
             }
             case BsoULongArray(long[] values) -> {
-                builder.append("[L;");
+                builder.append("[UL;");
                 for (int i = 0; i < values.length; ++i) {
                     if (i != 0) {
                         builder.append(',');

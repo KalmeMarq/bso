@@ -326,6 +326,40 @@ public class BsoUtils {
 
                 return (ad & 0b0001) == 0 ? new BsoShortArray(array) : new BsoUShortArray(array);
             }
+            case 0b1011 -> {
+                int length = ad == 0b0100 ? in.readInt() : ad == 0b0010 ? in.readUnsignedShort() : in.readUnsignedByte();
+                int[] array = new int[length];
+                for (int i = 0; i < length; ++i) {
+                    array[i] = in.readInt();
+                }
+
+                return (ad & 0b0001) == 0 ? new BsoIntArray(array) : new BsoUIntArray(array);
+            }
+            case 0b1100 -> {
+                int length = ad == 0b0100 ? in.readInt() : ad == 0b0010 ? in.readUnsignedShort() : in.readUnsignedByte();
+                long[] array = new long[length];
+                for (int i = 0; i < length; ++i) {
+                    array[i] = in.readLong();
+                }
+
+                return (ad & 0b0001) == 0 ? new BsoLongArray(array) : new BsoULongArray(array);
+            }
+            case 0b1101 -> {
+                int length = ad == 0b0100 ? in.readInt() : ad == 0b0010 ? in.readUnsignedShort() : in.readUnsignedByte();
+                if ((ad & 0b0001) == 0) {
+                    float[] array = new float[length];
+                    for (int i = 0; i < length; ++i) {
+                        array[i] = in.readFloat();
+                    }
+                    return new BsoFloatArray(array);
+                } else {
+                    double[] array = new double[length];
+                    for (int i = 0; i < length; ++i) {
+                        array[i] = in.readDouble();
+                    }
+                    return new BsoDoubleArray(array);
+                }
+            }
             default -> {
                 BsoCustomType<?> customType = customTypes.get(id);
                 if (customType != null) {

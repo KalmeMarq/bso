@@ -59,14 +59,12 @@ public class LittleEndianDataOutput implements DataOutput, AutoCloseable {
 
     @Override
     public void writeFloat(float v) throws IOException {
-        int value = Float.floatToIntBits(v);
-        this.output.writeFloat(Integer.reverseBytes(value));
+        this.writeInt(Float.floatToIntBits(v));
     }
 
     @Override
     public void writeDouble(double v) throws IOException {
-        long value = Double.doubleToLongBits(v);
-        this.output.writeLong(Long.reverseBytes(value));
+        this.writeLong(Double.doubleToLongBits(v));
     }
 
     @Override
