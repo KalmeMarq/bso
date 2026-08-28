@@ -40,7 +40,10 @@ public final class BsoMap implements BsoNode {
 
     @Override
     public void put(String name, BsoNode node) {
-        this.map.put(name, node == null ? BsoMissing.INSTANCE : node);
+        if (node == null || node.isMissing()) {
+            throw new IllegalArgumentException("Missing is not allowed");
+        }
+        this.map.put(name, node);
     }
 
     public void putByte(String name, int value) {

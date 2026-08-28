@@ -112,6 +112,25 @@ public class BsoTest {
     }
 
     @Test
+    void binaryRoundtripMapKeyWithNulUsesPrefix() throws IOException {
+        BsoMap map = new BsoMap();
+        map.put("a\0b", new BsoInt(3));
+
+        assertBinaryRoundtrip(map);
+    }
+
+    @Test
+    void binaryReadRejectsLengthOverContextMax() throws IOException {
+        BsoMap map = new BsoMap();
+        map.putIntArray("ia", new int[]{1, 2, 3});
+
+        Path path = this.tempDir.resolve("too-long.bso");
+        BsoUtils.write(path, map);
+        BsoContext context = new BsoContext().maxLength(2);
+        Assertions.assertThrows(IOException.class, () -> BsoUtils.read(path, context));
+    }
+
+    @Test
     void binaryRoundtripLittleEndian() throws IOException {
         BsoMap map = new BsoMap();
         map.putInt("i", 0x01020304);

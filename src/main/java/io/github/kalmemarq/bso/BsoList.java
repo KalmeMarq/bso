@@ -36,6 +36,9 @@ public final class BsoList implements BsoNode {
     }
 
     public void add(BsoNode node) {
+        if (node == null || node.isMissing()) {
+            throw new IllegalArgumentException("Missing is not allowed");
+        }
         this.list.add(node);
     }
 

@@ -79,7 +79,7 @@ public class LittleEndianDataOutput implements DataOutput, AutoCloseable {
 
     @Override
     public void writeUTF(String s) throws IOException {
-        this.output.writeUTF(s);
+        throw new UnsupportedOperationException("Modified UTF-8 is always big-endian");
     }
 
     @Override

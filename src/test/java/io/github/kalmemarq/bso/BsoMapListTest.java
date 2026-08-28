@@ -36,11 +36,11 @@ public class BsoMapListTest {
     }
 
     @Test
-    void mapNullPutBecomesMissing() {
+    void mapPutRejectsMissing() {
         BsoMap map = new BsoMap();
-        map.put("x", null);
-        Assertions.assertTrue(map.has("x"));
-        Assertions.assertTrue(map.get("x").isMissing());
+        Assertions.assertThrows(IllegalArgumentException.class, () -> map.put("x", null));
+        Assertions.assertThrows(IllegalArgumentException.class, () -> map.put("x", BsoMissing.INSTANCE));
+        Assertions.assertFalse(map.has("x"));
     }
 
     @Test
@@ -74,6 +74,14 @@ public class BsoMapListTest {
     }
 
     @Test
+    void listAddRejectsMissing() {
+        BsoList list = new BsoList();
+        Assertions.assertThrows(IllegalArgumentException.class, () -> list.add(null));
+        Assertions.assertThrows(IllegalArgumentException.class, () -> list.add(BsoMissing.INSTANCE));
+        Assertions.assertEquals(0, list.size());
+    }
+
+    @Test
     void listCopyIsIndependent() {
         BsoList list = new BsoList();
         BsoMap item = new BsoMap();
@@ -99,5 +107,7 @@ public class BsoMapListTest {
         Assertions.assertFalse(BsoBool.TRUE.isNumber());
         Assertions.assertTrue(BsoBool.TRUE.isBool());
         Assertions.assertFalse(new BsoMap().isList());
+        Assertions.assertEquals(40000, new BsoUShort((short) 40000).asNumber().intValue());
+        Assertions.assertEquals(200, new BsoUByte((byte) 200).asNumber().intValue());
     }
 }

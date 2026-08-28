@@ -3,7 +3,7 @@ package io.github.kalmemarq.bso;
 public record BsoUShort(short value) implements BsoPrimitive {
     @Override
     public Number asNumber(Number defaultValue) {
-        return this.value;
+        return this.value & 0xFFFF;
     }
 
     @Override

@@ -267,7 +267,7 @@ public class BsoUtils {
 
                     return new BsoString(new String(buf, 0, cur, StandardCharsets.UTF_8));
                 } else {
-                    int length = readLength(in, ad);
+                    int length = readLength(in, ad, context);
                     byte[] buf = new byte[length];
                     in.readFully(buf, 0, buf.length);
                     return new BsoString(new String(buf, StandardCharsets.UTF_8));
@@ -276,15 +276,15 @@ public class BsoUtils {
             case 0b0111 -> {
                 Map<String, BsoNode> map;
 
-                int length = readLength(in, ad);
-                map = new HashMap<>(length);
+                int length = readLength(in, ad, context);
+                map = new LinkedHashMap<>(length);
 
                 for (int i = 0; i < length; ++i) {
                     long adid = readADID(in);
                     int ead = (int) ((adid >> 32L) & 0xFFFFFFFFL);
                     int eid = (int) (adid & 0xFFFFFFFFL);
 
-                    String key = readBsoMapKey(in, ad);
+                    String key = readBsoMapKey(in, ad, context);
                     BsoNode value = readBsoNode(in, eid, ead, context);
                     map.put(key, value);
                 }
@@ -294,7 +294,7 @@ public class BsoUtils {
             case 0b1000 -> {
                 List<BsoNode> list;
 
-                int length = readLength(in, ad);
+                int length = readLength(in, ad, context);
                 list = new ArrayList<>(length);
 
                 for (int i = 0; i < length; ++i) {
@@ -309,14 +309,14 @@ public class BsoUtils {
                 return new BsoList(list);
             }
             case 0b1001 -> {
-                int length = readLength(in, ad);
+                int length = readLength(in, ad, context);
                 byte[] array = new byte[length];
                 in.readFully(array, 0, array.length);
 
                 return (ad & 0b0001) == 0 ? new BsoByteArray(array) : new BsoUByteArray(array);
             }
             case 0b1010 -> {
-                int length = readLength(in, ad);
+                int length = readLength(in, ad, context);
                 short[] array = new short[length];
                 for (int i = 0; i < length; ++i) {
                     array[i] = in.readShort();
@@ -325,7 +325,7 @@ public class BsoUtils {
                 return (ad & 0b0001) == 0 ? new BsoShortArray(array) : new BsoUShortArray(array);
             }
             case 0b1011 -> {
-                int length = readLength(in, ad);
+                int length = readLength(in, ad, context);
                 int[] array = new int[length];
                 for (int i = 0; i < length; ++i) {
                     array[i] = in.readInt();
@@ -334,7 +334,7 @@ public class BsoUtils {
                 return (ad & 0b0001) == 0 ? new BsoIntArray(array) : new BsoUIntArray(array);
             }
             case 0b1100 -> {
-                int length = readLength(in, ad);
+                int length = readLength(in, ad, context);
                 long[] array = new long[length];
                 for (int i = 0; i < length; ++i) {
                     array[i] = in.readLong();
@@ -343,7 +343,7 @@ public class BsoUtils {
                 return (ad & 0b0001) == 0 ? new BsoLongArray(array) : new BsoULongArray(array);
             }
             case 0b1101 -> {
-                int length = readLength(in, ad);
+                int length = readLength(in, ad, context);
                 if ((ad & 0b0001) == 0) {
                     float[] array = new float[length];
                     for (int i = 0; i < length; ++i) {
@@ -369,10 +369,10 @@ public class BsoUtils {
         }
     }
 
-    private static String readBsoMapKey(DataInput in, int ad) throws IOException {
-        if ((ad & 0b1000) == 0b1000) {
+    private static String readBsoMapKey(DataInput in, int ad, BsoContext context) throws IOException {
+        if ((ad & 0b0001) != 0) {
             // prefix
-            int length = readVarInt(in);
+            int length = readVarInt(in, context);
             byte[] buf = new byte[length];
             in.readFully(buf);
             return new String(buf, StandardCharsets.UTF_8);
@@ -474,19 +474,19 @@ public class BsoUtils {
                     out.writeInt(n.size());
                 }
 
-                for (var entry : node.properties()) {
+                for (var entry : n.properties()) {
                     int ead = getBsoNodeAd(entry.getValue());
                     int eid = getBsoNodeId(entry.getValue());
                     writeADID(out, ead, eid);
 
                     byte[] bytes = entry.getKey().getBytes(StandardCharsets.UTF_8);
-                    if ((ad & 0b1000) != 0) {
+                    if ((ad & 0b0001) != 0) {
                         writeVarInt(out, bytes.length);
                     }
 
                     out.write(bytes);
 
-                    if ((ad & 0b1000) == 0) {
+                    if ((ad & 0b0001) == 0) {
                         out.writeByte(0);
                     }
 
@@ -639,29 +639,41 @@ public class BsoUtils {
         }
     }
 
-    private static int readLength(DataInput in, int ad) throws IOException {
+    private static int readLength(DataInput in, int ad, BsoContext context) throws IOException {
         int size = ad & 0b0110;
+        int length;
         if (size == 0b0100) {
-            return in.readInt();
+            length = in.readInt();
         } else if (size == 0b0010) {
-            return in.readUnsignedShort();
+            length = in.readUnsignedShort();
         } else {
-            return in.readUnsignedByte();
+            length = in.readUnsignedByte();
         }
+        return checkLength(length, context);
     }
 
-    private static int readVarInt(DataInput in) throws IOException {
+    private static int checkLength(int length, BsoContext context) throws IOException {
+        if (length < 0) {
+            throw new IOException("Negative length");
+        }
+        if (length > context.maxLength()) {
+            throw new IOException("Length " + length + " exceeds maximum " + context.maxLength());
+        }
+        return length;
+    }
+
+    private static int readVarInt(DataInput in, BsoContext context) throws IOException {
         int shift = 0;
         int result = 0;
         while (shift < 32) {
             final byte b = in.readByte();
             result |= (b & 0x7F) << shift;
             if ((b & 0x80) == 0) {
-                return result;
+                return checkLength(result, context);
             }
             shift += 7;
         }
-        throw new RuntimeException("Malformed VarInt");
+        throw new IOException("Malformed VarInt");
     }
 
     private static void writeVarInt(DataOutput out, int value) throws IOException {
@@ -763,7 +775,14 @@ public class BsoUtils {
             int len = value.getBytes(StandardCharsets.UTF_8).length;
             return packedLengthAd(len);
         } else if (node instanceof BsoMap n) {
-            return packedLengthAd(n.size());
+            boolean prefixKeys = false;
+            for (var entry : n.properties()) {
+                if (entry.getKey().indexOf('\0') >= 0) {
+                    prefixKeys = true;
+                    break;
+                }
+            }
+            return packedLengthAd(n.size()) | (prefixKeys ? 0b0001 : 0);
         } else if (node instanceof BsoList n) {
             return packedLengthAd(n.size());
         } else if (node instanceof BsoArray n) {

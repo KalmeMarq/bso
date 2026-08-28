@@ -6,6 +6,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
@@ -26,12 +27,16 @@ public class SBsoReader {
     }
 
     public BsoNode read(Path path) throws IOException {
-        this.currChr = -1;
-        this.reader = new InputStreamReader(Files.newInputStream(path));
-        this.line = 1;
-        this.column = 1;
-        this.read();
-        return this.readNode();
+        try (Reader reader = new InputStreamReader(Files.newInputStream(path), StandardCharsets.UTF_8)) {
+            this.currChr = -1;
+            this.reader = reader;
+            this.line = 1;
+            this.column = 1;
+            this.read();
+            BsoNode node = this.readNode();
+            this.finish();
+            return node;
+        }
     }
 
     public BsoNode read(String content) throws IOException {
@@ -40,7 +45,16 @@ public class SBsoReader {
         this.line = 1;
         this.column = 1;
         this.read();
-        return this.readNode();
+        BsoNode node = this.readNode();
+        this.finish();
+        return node;
+    }
+
+    private void finish() throws IOException {
+        this.skipWhitespace();
+        if (this.currChr != -1) {
+            throw new SBsoParseException("Unexpected trailing input", this.line, this.column);
+        }
     }
 
     private BsoNode readNode() throws IOException {
@@ -66,9 +80,13 @@ public class SBsoReader {
             case '(' -> {
                 return this.readCustom();
             }
+            default -> {
+                if (this.currChr == -1) {
+                    throw new SBsoParseException("Unexpected end of input", this.line, this.column);
+                }
+                throw new SBsoParseException("Unexpected character '" + (char) this.currChr + "'", this.line, this.column);
+            }
         }
-
-        return null;
     }
 
     private BsoNode readCustom() throws IOException {
@@ -200,10 +218,13 @@ public class SBsoReader {
                     this.read();
 
                     if (this.currChr == 'b') {
+                        this.read();
                         return new BsoByte(Byte.parseByte(b.toString(), radix));
                     } else if (this.currChr == 's') {
+                        this.read();
                         return new BsoShort(Short.parseShort(b.toString(), radix));
                     } else if (this.currChr == 'l') {
+                        this.read();
                         return new BsoLong(Long.parseLong(b.toString(), radix));
                     } else {
                         return new BsoInt(Integer.parseInt(b.toString(), radix));
@@ -238,7 +259,7 @@ public class SBsoReader {
             return new BsoMap();
         }
 
-        Map<String, BsoNode> map = new HashMap<>();
+        Map<String, BsoNode> map = new LinkedHashMap<>();
 
         do {
             this.skipWhitespace();
@@ -271,11 +292,7 @@ public class SBsoReader {
         boolean quoted = this.readChar('"');
         StringBuilder b = new StringBuilder();
         if (quoted) {
-            while (this.currChr != '"') {
-                b.append((char) this.currChr);
-                this.read();
-            }
-            this.readExpected('"');
+            return this.readQuotedStringContents();
         } else {
             int i = 0;
             while (this.isNoQuoteKey() || (i > 0 && (this.isDigit() || this.currChr == '-'))) {
@@ -363,7 +380,12 @@ public class SBsoReader {
             }
         }
 
-        while (this.currChr != '"') {
+        return new BsoString(this.readQuotedStringContents());
+    }
+
+    private String readQuotedStringContents() throws IOException {
+        StringBuilder b = new StringBuilder();
+        while (this.currChr != '"' && this.currChr != -1) {
             if (this.currChr == '\\') {
                 this.read();
                 switch (this.currChr) {
@@ -397,7 +419,7 @@ public class SBsoReader {
             }
         }
         this.readExpected('"');
-        return new BsoString(b.toString());
+        return b.toString();
     }
 
     private BsoNode readList() throws IOException {

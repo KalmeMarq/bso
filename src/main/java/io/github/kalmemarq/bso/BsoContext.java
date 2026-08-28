@@ -11,9 +11,22 @@ public final class BsoContext {
     private final Map<Integer, BsoCustomType<?>> byId = new HashMap<>();
     private final Map<Class<?>, BsoCustomType<?>> byClazz = new HashMap<>();
     private final Map<String, BsoCustomType<?>> byName = new HashMap<>();
+    private int maxLength = 1 << 24;
 
     public static BsoContext global() {
         return GLOBAL;
+    }
+
+    public int maxLength() {
+        return this.maxLength;
+    }
+
+    public BsoContext maxLength(int maxLength) {
+        if (maxLength < 0) {
+            throw new IllegalArgumentException("maxLength must be non-negative");
+        }
+        this.maxLength = maxLength;
+        return this;
     }
 
     public <T> BsoCustomType<T> register(BsoCustomType<T> type) {

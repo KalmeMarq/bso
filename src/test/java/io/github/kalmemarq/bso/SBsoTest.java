@@ -156,5 +156,22 @@ public class SBsoTest {
         Assertions.assertThrows(SBsoParseException.class, () -> SBsoUtils.read("{a 1}"));
         Assertions.assertThrows(SBsoParseException.class, () -> SBsoUtils.read("\"\\uXX\""));
         Assertions.assertThrows(SBsoParseException.class, () -> SBsoUtils.read("(unknown;1)"));
+        Assertions.assertThrows(SBsoParseException.class, () -> SBsoUtils.read("{a:@}"));
+        Assertions.assertThrows(SBsoParseException.class, () -> SBsoUtils.read("1 2"));
+    }
+
+    @Test
+    void parsePreservesKeyOrder() throws IOException {
+        BsoNode parsed = SBsoUtils.read("{first:1,second:2,third:3}");
+        Assertions.assertEquals("{first:1,second:2,third:3}", SBsoUtils.stringify(parsed));
+    }
+
+    @Test
+    void quotedKeysUnescape() throws IOException {
+        BsoMap map = new BsoMap();
+        map.put("say \"hi\"", new BsoInt(1));
+
+        String text = SBsoUtils.stringify(map);
+        BsoNodes.assertEquals(map, SBsoUtils.read(text));
     }
 }

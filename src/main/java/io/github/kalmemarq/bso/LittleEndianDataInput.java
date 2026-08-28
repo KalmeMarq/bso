@@ -84,7 +84,7 @@ public class LittleEndianDataInput implements DataInput, AutoCloseable {
 
     @Override
     public String readUTF() throws IOException {
-        return this.input.readUTF();
+        throw new UnsupportedOperationException("Modified UTF-8 is always big-endian");
     }
 
     @Override
