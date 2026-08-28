@@ -156,6 +156,8 @@ public class SBsoTest {
         Assertions.assertThrows(SBsoParseException.class, () -> SBsoUtils.read("{a 1}"));
         Assertions.assertThrows(SBsoParseException.class, () -> SBsoUtils.read("\"\\uXX\""));
         Assertions.assertThrows(SBsoParseException.class, () -> SBsoUtils.read("(unknown;1)"));
+        Assertions.assertThrows(SBsoParseException.class, () -> SBsoUtils.read("()"));
+        Assertions.assertThrows(SBsoParseException.class, () -> SBsoUtils.read("(uuid)"));
         Assertions.assertThrows(SBsoParseException.class, () -> SBsoUtils.read("{a:@}"));
         Assertions.assertThrows(SBsoParseException.class, () -> SBsoUtils.read("1 2"));
     }

@@ -41,6 +41,7 @@ public class BsoMapListTest {
         Assertions.assertThrows(IllegalArgumentException.class, () -> map.put("x", null));
         Assertions.assertThrows(IllegalArgumentException.class, () -> map.put("x", BsoMissing.INSTANCE));
         Assertions.assertFalse(map.has("x"));
+        Assertions.assertThrows(IllegalArgumentException.class, () -> new BsoMap(java.util.Map.of("x", BsoMissing.INSTANCE)));
     }
 
     @Test
@@ -79,6 +80,7 @@ public class BsoMapListTest {
         Assertions.assertThrows(IllegalArgumentException.class, () -> list.add(null));
         Assertions.assertThrows(IllegalArgumentException.class, () -> list.add(BsoMissing.INSTANCE));
         Assertions.assertEquals(0, list.size());
+        Assertions.assertThrows(IllegalArgumentException.class, () -> new BsoList(java.util.List.of(BsoMissing.INSTANCE)));
     }
 
     @Test

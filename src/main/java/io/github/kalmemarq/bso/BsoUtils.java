@@ -51,12 +51,12 @@ public class BsoUtils {
                 Path inPath = Path.of(args[1]);
                 Path outPath = Path.of(args[2]);
 
-                Endianess endianess = Endianess.BIG;
+                Endianness endianness = Endianness.BIG;
                 if (args.length >= 4 && "--le".equals(args[3])) {
-                    endianess = Endianess.LITTLE;
+                    endianness = Endianness.LITTLE;
                 }
 
-                BsoUtils.write(outPath, SBsoUtils.read(inPath), endianess);
+                BsoUtils.write(outPath, SBsoUtils.read(inPath), endianness);
             } else {
                 throw new IllegalArgumentException("Unknown command " + args[0]);
             }
@@ -65,39 +65,68 @@ public class BsoUtils {
 
 
     public static void write(Path path, BsoNode node) throws IOException {
-        write(path, node, Endianess.BIG);
+        write(path, node, Endianness.BIG);
+    }
+
+    public static void write(OutputStream out, BsoNode node) throws IOException {
+        write(out, node, Endianness.BIG);
+    }
+
+    public static byte[] toBytes(BsoNode node) throws IOException {
+        return toBytes(node, Endianness.BIG);
+    }
+
+    public static byte[] toBytes(BsoNode node, Endianness endianness) throws IOException {
+        ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+        write(bytes, node, endianness);
+        return bytes.toByteArray();
     }
 
     public static void writeCompressed(Path path, BsoNode node) throws IOException {
-        writeCompressed(path, node, Endianess.BIG);
+        writeCompressed(path, node, Endianness.BIG);
     }
 
-    public static void write(Path path, BsoNode node, Endianess endianess) throws IOException {
-        try (DataOutputStream output = new DataOutputStream(Files.newOutputStream(path))) {
-            output.write(BSO_VERSION << 4 | (endianess == Endianess.BIG ? 0 : 0b0100));
+    public static void writeCompressed(OutputStream out, BsoNode node) throws IOException {
+        writeCompressed(out, node, Endianness.BIG);
+    }
 
-            DataOutput out = endianess == Endianess.BIG ? output : new LittleEndianDataOutput(output);
-
-            int ad = getBsoNodeAd(node);
-            int id = getBsoNodeId(node);
-            writeADID(out, ad, id);
-            writeBsoNode(out, node, ad);
+    public static void write(Path path, BsoNode node, Endianness endianness) throws IOException {
+        try (OutputStream out = Files.newOutputStream(path)) {
+            write(out, node, endianness);
         }
     }
 
-    public static void writeCompressed(Path path, BsoNode node, Endianess endianess) throws IOException {
-        try (OutputStream outS = Files.newOutputStream(path)) {
-            outS.write((BSO_VERSION << 4) | 0b1000);
+    public static void write(OutputStream out, BsoNode node, Endianness endianness) throws IOException {
+        DataOutputStream output = new DataOutputStream(out);
+        output.write(header(endianness, false));
+        writeBody(endianness == Endianness.BIG ? output : new LittleEndianDataOutput(output), node);
+        output.flush();
+    }
 
-            try (DataOutputStream output = new DataOutputStream(new GZIPOutputStream(outS))) {
-                DataOutput out = endianess == Endianess.BIG ? output : new LittleEndianDataOutput(output);
-
-                int ad = getBsoNodeAd(node);
-                int id = getBsoNodeId(node);
-                writeADID(out, ad, id);
-                writeBsoNode(out, node, ad);
-            }
+    public static void writeCompressed(Path path, BsoNode node, Endianness endianness) throws IOException {
+        try (OutputStream out = Files.newOutputStream(path)) {
+            writeCompressed(out, node, endianness);
         }
+    }
+
+    public static void writeCompressed(OutputStream out, BsoNode node, Endianness endianness) throws IOException {
+        out.write(header(endianness, true));
+        GZIPOutputStream gzip = new GZIPOutputStream(out);
+        DataOutputStream output = new DataOutputStream(gzip);
+        writeBody(endianness == Endianness.BIG ? output : new LittleEndianDataOutput(output), node);
+        output.flush();
+        gzip.finish();
+    }
+
+    private static int header(Endianness endianness, boolean compressed) {
+        return BSO_VERSION << 4 | (compressed ? 0b1000 : 0) | (endianness == Endianness.BIG ? 0 : 0b0100);
+    }
+
+    private static void writeBody(DataOutput out, BsoNode node) throws IOException {
+        int ad = getBsoNodeAd(node);
+        int id = getBsoNodeId(node);
+        writeADID(out, ad, id);
+        writeBsoNode(out, node, ad);
     }
 
     static void writeADID(DataOutput out, int ad, int id) throws IOException {
@@ -123,35 +152,54 @@ public class BsoUtils {
     }
 
     public static BsoNode read(Path path, BsoContext context) throws IOException {
-        try (InputStream inS = Files.newInputStream(path)) {
-            int header = inS.read();
-            int version = (header >> 4) & 0xF;
-            int config = header & 0xF;
+        try (InputStream in = Files.newInputStream(path)) {
+            return read(in, context);
+        }
+    }
 
-            if (version != 0) {
-                throw new IOException("Unknown BSO version " + version);
-            }
+    public static BsoNode fromBytes(byte[] bytes) throws IOException {
+        return fromBytes(bytes, BsoContext.global());
+    }
 
-            if ((config & 0b1000) == 0) {
-                try (DataInputStream input = new DataInputStream(inS)) {
-                    DataInput in = (config & 0b0100) == 0 ? input : new LittleEndianDataInput(input);
+    public static BsoNode fromBytes(byte[] bytes, BsoContext context) throws IOException {
+        return read(new ByteArrayInputStream(bytes), context);
+    }
 
-                    long adid = readADID(in);
-                    int ad = (int) ((adid >> 32L) & 0xFFFFFFFFL);
-                    int id = (int) (adid & 0xFFFFFFFFL);
-                    return readBsoNode(in, id, ad, context);
+    public static BsoNode read(InputStream in) throws IOException {
+        return read(in, BsoContext.global());
+    }
+
+    public static BsoNode read(InputStream in, BsoContext context) throws IOException {
+        int header = in.read();
+        if (header < 0) {
+            throw new IOException("Unexpected end of stream");
+        }
+        int version = (header >> 4) & 0xF;
+        int config = header & 0xF;
+
+        if (version != 0) {
+            throw new IOException("Unknown BSO version " + version);
+        }
+
+        if ((config & 0b1000) != 0) {
+            try (GZIPInputStream gzip = new GZIPInputStream(new FilterInputStream(in) {
+                @Override
+                public void close() {
                 }
-            } else {
-                try (DataInputStream input = new DataInputStream(new GZIPInputStream(inS) )) {
-                    DataInput in = (config & 0b0100) == 0 ? input : new LittleEndianDataInput(input);
-
-                    long adid = readADID(in);
-                    int ad = (int) ((adid >> 32L) & 0xFFFFFFFFL);
-                    int id = (int) (adid & 0xFFFFFFFFL);
-                    return readBsoNode(in, id, ad, context);
-                }
+            })) {
+                return readBody(gzip, config, context);
             }
         }
+        return readBody(in, config, context);
+    }
+
+    private static BsoNode readBody(InputStream in, int config, BsoContext context) throws IOException {
+        DataInputStream input = new DataInputStream(in);
+        DataInput data = (config & 0b0100) == 0 ? input : new LittleEndianDataInput(input);
+        long adid = readADID(data);
+        int ad = (int) ((adid >> 32L) & 0xFFFFFFFFL);
+        int id = (int) (adid & 0xFFFFFFFFL);
+        return readBsoNode(data, id, ad, context);
     }
 
     static long readADID(DataInput in) throws IOException {
@@ -804,11 +852,11 @@ public class BsoUtils {
         return (len & 0xFFFFFF00) == 0 ? 0b0000 : (len & 0xFFFF0000) == 0 ? 0b0010 : 0b0100;
     }
 
-    public enum Endianess {
+    public enum Endianness {
         BIG,
         LITTLE;
 
-        Endianess getNative() {
+        Endianness getNative() {
             return ByteOrder.nativeOrder() == ByteOrder.BIG_ENDIAN ? BIG : LITTLE;
         }
     }

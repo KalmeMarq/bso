@@ -112,7 +112,7 @@ true
 
 XXXX ____ version
 ____ X___ Compression method (0 - none, 1 - gzip)
-____ _X__ Endianess (0 - big, 1 - little)
+____ _X__ Endianness (0 - big, 1 - little)
 
 Map
 

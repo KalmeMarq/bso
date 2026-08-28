@@ -11,6 +11,11 @@ public final class BsoMap implements BsoNode {
     }
 
     public BsoMap(Map<String, BsoNode> map) {
+        for (BsoNode value : map.values()) {
+            if (value == null || value.isMissing()) {
+                throw new IllegalArgumentException("Missing is not allowed");
+            }
+        }
         this.map = map;
     }
 

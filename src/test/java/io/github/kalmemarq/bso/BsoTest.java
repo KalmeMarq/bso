@@ -140,7 +140,7 @@ public class BsoTest {
         map.putString("s", "le");
 
         Path path = this.tempDir.resolve("le.bso");
-        BsoUtils.write(path, map, BsoUtils.Endianess.LITTLE);
+        BsoUtils.write(path, map, BsoUtils.Endianness.LITTLE);
         BsoNodes.assertEquals(map, BsoUtils.read(path));
     }
 
@@ -153,6 +153,26 @@ public class BsoTest {
         Path path = this.tempDir.resolve("gz.bso");
         BsoUtils.writeCompressed(path, map);
         BsoNodes.assertEquals(map, BsoUtils.read(path));
+    }
+
+    @Test
+    void binaryRoundtripCompressedLittleEndian() throws IOException {
+        BsoMap map = new BsoMap();
+        map.putInt("i", 0x01020304);
+        map.putString("s", "le-gz");
+
+        Path path = this.tempDir.resolve("gz-le.bso");
+        BsoUtils.writeCompressed(path, map, BsoUtils.Endianness.LITTLE);
+        BsoNodes.assertEquals(map, BsoUtils.read(path));
+    }
+
+    @Test
+    void binaryRoundtripBytesAndStreams() throws IOException {
+        BsoMap map = new BsoMap();
+        map.putInt("n", 9);
+
+        BsoNodes.assertEquals(map, BsoUtils.fromBytes(BsoUtils.toBytes(map)));
+        BsoNodes.assertEquals(map, BsoUtils.fromBytes(BsoUtils.toBytes(map, BsoUtils.Endianness.LITTLE)));
     }
 
     @Test

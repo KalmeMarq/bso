@@ -2,6 +2,8 @@ package io.github.kalmemarq.bso;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
+import java.io.Reader;
+import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -13,6 +15,14 @@ public final class SBsoUtils {
 
     public static BsoNode read(Path path, BsoContext context) throws IOException {
         return new SBsoReader(context).read(path);
+    }
+
+    public static BsoNode read(Reader reader) throws IOException {
+        return read(reader, BsoContext.global());
+    }
+
+    public static BsoNode read(Reader reader, BsoContext context) throws IOException {
+        return new SBsoReader(context).read(reader);
     }
 
     public static BsoNode read(String input) throws IOException {
@@ -29,8 +39,17 @@ public final class SBsoUtils {
 
     public static void write(Path path, BsoNode node, SBsoWriteOptions options) throws IOException {
         try (BufferedWriter writer = Files.newBufferedWriter(path, StandardCharsets.UTF_8)) {
-            writer.write(stringify(node, options));
+            write(writer, node, options);
         }
+    }
+
+    public static void write(Writer writer, BsoNode node) throws IOException {
+        write(writer, node, SBsoWriteOptions.MINIFIED);
+    }
+
+    public static void write(Writer writer, BsoNode node, SBsoWriteOptions options) throws IOException {
+        writer.write(stringify(node, options));
+        writer.flush();
     }
 
     public static String stringify(BsoNode node) {

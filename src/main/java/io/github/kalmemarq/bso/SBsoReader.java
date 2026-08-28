@@ -28,20 +28,17 @@ public class SBsoReader {
 
     public BsoNode read(Path path) throws IOException {
         try (Reader reader = new InputStreamReader(Files.newInputStream(path), StandardCharsets.UTF_8)) {
-            this.currChr = -1;
-            this.reader = reader;
-            this.line = 1;
-            this.column = 1;
-            this.read();
-            BsoNode node = this.readNode();
-            this.finish();
-            return node;
+            return this.read(reader);
         }
     }
 
     public BsoNode read(String content) throws IOException {
+        return this.read(BufferedReader.of(content));
+    }
+
+    public BsoNode read(Reader reader) throws IOException {
         this.currChr = -1;
-        this.reader = BufferedReader.of(content);
+        this.reader = reader;
         this.line = 1;
         this.column = 1;
         this.read();
@@ -92,28 +89,25 @@ public class SBsoReader {
     private BsoNode readCustom() throws IOException {
         this.read();
         this.skipWhitespace();
-        if (this.readChar(')')) {
-            return new BsoMap();
+        if (this.currChr == ')' || this.currChr == -1) {
+            throw new SBsoParseException("Expected custom type name", this.line, this.column);
         }
 
         StringBuilder nb = new StringBuilder();
-        while (this.currChr != ';' && this.currChr != -1) {
-            nb.append((char) this.currChr);
-            this.read();
-
+        while (this.currChr != ';' && this.currChr != ')' && this.currChr != -1) {
             if (this.isWhitespace()) {
                 this.skipWhitespace();
-                if (this.readChar(')')) {
-                    return new BsoMap();
-                } else {
-                    this.readExpected(';');
-                }
+                break;
             }
-        }
-
-        if (this.currChr == ';') {
+            nb.append((char) this.currChr);
             this.read();
         }
+
+        if (nb.isEmpty()) {
+            throw new SBsoParseException("Expected custom type name", this.line, this.column);
+        }
+        this.skipWhitespace();
+        this.readExpected(';');
 
         this.skipWhitespace();
 
@@ -429,32 +423,27 @@ public class SBsoReader {
             return new BsoList();
         }
 
-        boolean hasUnsignedMark = this.readChar('U');
+        boolean unsigned = this.readChar('U');
         if (this.readChar('B')) {
             this.readExpected(';');
             this.skipWhitespace();
             if (this.readChar(']')) {
-                return hasUnsignedMark ? new BsoUByteArray(new byte[0]) : new BsoByteArray(new byte[0]);
+                return unsigned ? new BsoUByteArray(new byte[0]) : new BsoByteArray(new byte[0]);
             }
 
             byte[] array = new byte[32];
             int i = 0;
-
             StringBuilder b = new StringBuilder();
             do {
                 this.skipWhitespace();
-
                 b.setLength(0);
                 int res = this.readNum(b);
                 int radix = res & 0xFFFF;
-
-                if (i + 1 >= array.length)
+                if (i >= array.length) {
                     array = Arrays.copyOf(array, array.length * 2);
-
-                array[i++] = hasUnsignedMark ? (byte) Integer.parseUnsignedInt(b.toString(), radix) : Byte.parseByte(b.toString(), radix);
-
+                }
+                array[i++] = unsigned ? (byte) Integer.parseUnsignedInt(b.toString(), radix) : Byte.parseByte(b.toString(), radix);
                 this.skipWhitespaceNoNL();
-
                 if (this.readChar('\n')) {
                     this.skipWhitespace();
                     if (this.currChr == ']') {
@@ -464,35 +453,29 @@ public class SBsoReader {
                     break;
                 }
             } while (true);
-
             this.skipWhitespace();
             this.readExpected(']');
-            return hasUnsignedMark ? new BsoUByteArray(Arrays.copyOf(array, i)) : new BsoByteArray(Arrays.copyOf(array, i));
+            return unsigned ? new BsoUByteArray(Arrays.copyOf(array, i)) : new BsoByteArray(Arrays.copyOf(array, i));
         } else if (this.readChar('S')) {
             this.readExpected(';');
             this.skipWhitespace();
             if (this.readChar(']')) {
-                return new BsoShortArray(new short[0]);
+                return unsigned ? new BsoUShortArray(new short[0]) : new BsoShortArray(new short[0]);
             }
 
             short[] array = new short[16];
             int i = 0;
-
             StringBuilder b = new StringBuilder();
             do {
                 this.skipWhitespace();
-
                 b.setLength(0);
                 int res = this.readNum(b);
                 int radix = res & 0xFFFF;
-
-                if (i + 1 >= array.length)
+                if (i >= array.length) {
                     array = Arrays.copyOf(array, array.length * 2);
-
-                array[i++] = hasUnsignedMark ? (short) Integer.parseUnsignedInt(b.toString(), radix) : Short.parseShort(b.toString(), radix);
-
+                }
+                array[i++] = unsigned ? (short) Integer.parseUnsignedInt(b.toString(), radix) : Short.parseShort(b.toString(), radix);
                 this.skipWhitespaceNoNL();
-
                 if (this.readChar('\n')) {
                     this.skipWhitespace();
                     if (this.currChr == ']') {
@@ -502,35 +485,29 @@ public class SBsoReader {
                     break;
                 }
             } while (true);
-
             this.skipWhitespace();
             this.readExpected(']');
-            return hasUnsignedMark ? new BsoUShortArray(Arrays.copyOf(array, i)) : new BsoShortArray(Arrays.copyOf(array, i));
+            return unsigned ? new BsoUShortArray(Arrays.copyOf(array, i)) : new BsoShortArray(Arrays.copyOf(array, i));
         } else if (this.readChar('I')) {
             this.readExpected(';');
             this.skipWhitespace();
             if (this.readChar(']')) {
-                return new BsoIntArray(new int[0]);
+                return unsigned ? new BsoUIntArray(new int[0]) : new BsoIntArray(new int[0]);
             }
 
             int[] array = new int[8];
             int i = 0;
-
             StringBuilder b = new StringBuilder();
             do {
                 this.skipWhitespace();
-
                 b.setLength(0);
                 int res = this.readNum(b);
                 int radix = res & 0xFFFF;
-
-                if (i + 1 >= array.length)
+                if (i >= array.length) {
                     array = Arrays.copyOf(array, array.length * 2);
-
-                array[i++] = hasUnsignedMark ? Integer.parseUnsignedInt(b.toString(), radix) : Integer.parseInt(b.toString(), radix);
-
+                }
+                array[i++] = unsigned ? Integer.parseUnsignedInt(b.toString(), radix) : Integer.parseInt(b.toString(), radix);
                 this.skipWhitespaceNoNL();
-
                 if (this.readChar('\n')) {
                     this.skipWhitespace();
                     if (this.currChr == ']') {
@@ -540,35 +517,29 @@ public class SBsoReader {
                     break;
                 }
             } while (true);
-
             this.skipWhitespace();
             this.readExpected(']');
-            return hasUnsignedMark ? new BsoUIntArray(Arrays.copyOf(array, i)) : new BsoIntArray(Arrays.copyOf(array, i));
+            return unsigned ? new BsoUIntArray(Arrays.copyOf(array, i)) : new BsoIntArray(Arrays.copyOf(array, i));
         } else if (this.readChar('L')) {
             this.readExpected(';');
             this.skipWhitespace();
             if (this.readChar(']')) {
-                return new BsoLongArray(new long[0]);
+                return unsigned ? new BsoULongArray(new long[0]) : new BsoLongArray(new long[0]);
             }
 
             long[] array = new long[4];
             int i = 0;
-
             StringBuilder b = new StringBuilder();
             do {
                 this.skipWhitespace();
-
                 b.setLength(0);
                 int res = this.readNum(b);
                 int radix = res & 0xFFFF;
-
-                if (i + 1 >= array.length)
+                if (i >= array.length) {
                     array = Arrays.copyOf(array, array.length * 2);
-
-                array[i++] = hasUnsignedMark ? Long.parseUnsignedLong(b.toString(), radix) : Long.parseLong(b.toString(), radix);
-
+                }
+                array[i++] = unsigned ? Long.parseUnsignedLong(b.toString(), radix) : Long.parseLong(b.toString(), radix);
                 this.skipWhitespaceNoNL();
-
                 if (this.readChar('\n')) {
                     this.skipWhitespace();
                     if (this.currChr == ']') {
@@ -578,10 +549,9 @@ public class SBsoReader {
                     break;
                 }
             } while (true);
-
             this.skipWhitespace();
             this.readExpected(']');
-            return hasUnsignedMark ? new BsoULongArray(Arrays.copyOf(array, i)) : new BsoLongArray(Arrays.copyOf(array, i));
+            return unsigned ? new BsoULongArray(Arrays.copyOf(array, i)) : new BsoLongArray(Arrays.copyOf(array, i));
         } else if (this.readChar('F')) {
             this.readExpected(';');
             this.skipWhitespace();
@@ -591,21 +561,16 @@ public class SBsoReader {
 
             float[] array = new float[8];
             int i = 0;
-
             StringBuilder b = new StringBuilder();
             do {
                 this.skipWhitespace();
-
                 b.setLength(0);
                 this.readNum(b);
-
-                if (i + 1 >= array.length)
+                if (i >= array.length) {
                     array = Arrays.copyOf(array, array.length * 2);
-
+                }
                 array[i++] = Float.parseFloat(b.toString());
-
                 this.skipWhitespaceNoNL();
-
                 if (this.readChar('\n')) {
                     this.skipWhitespace();
                     if (this.currChr == ']') {
@@ -615,7 +580,6 @@ public class SBsoReader {
                     break;
                 }
             } while (true);
-
             this.skipWhitespace();
             this.readExpected(']');
             return new BsoFloatArray(Arrays.copyOf(array, i));
@@ -628,21 +592,16 @@ public class SBsoReader {
 
             double[] array = new double[8];
             int i = 0;
-
             StringBuilder b = new StringBuilder();
             do {
                 this.skipWhitespace();
-
                 b.setLength(0);
                 this.readNum(b);
-
-                if (i + 1 >= array.length)
+                if (i >= array.length) {
                     array = Arrays.copyOf(array, array.length * 2);
-
+                }
                 array[i++] = Double.parseDouble(b.toString());
-
                 this.skipWhitespaceNoNL();
-
                 if (this.readChar('\n')) {
                     this.skipWhitespace();
                     if (this.currChr == ']') {
@@ -652,21 +611,16 @@ public class SBsoReader {
                     break;
                 }
             } while (true);
-
             this.skipWhitespace();
             this.readExpected(']');
             return new BsoDoubleArray(Arrays.copyOf(array, i));
         }
 
         List<BsoNode> list = new ArrayList<>();
-
         do {
             this.skipWhitespace();
-            BsoNode value = this.readNode();
-            list.add(value);
-
+            list.add(this.readNode());
             this.skipWhitespaceNoNL();
-
             if (this.readChar('\n')) {
                 this.skipWhitespace();
                 if (this.currChr == ']') {

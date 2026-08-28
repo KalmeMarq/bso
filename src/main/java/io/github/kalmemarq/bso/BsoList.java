@@ -10,6 +10,11 @@ public final class BsoList implements BsoNode {
     }
 
     public BsoList(List<BsoNode> list) {
+        for (BsoNode node : list) {
+            if (node == null || node.isMissing()) {
+                throw new IllegalArgumentException("Missing is not allowed");
+            }
+        }
         this.list = list;
     }
 
