@@ -2,7 +2,7 @@ package io.github.kalmemarq.bso;
 
 import java.util.Arrays;
 
-public record BsoULongArray(long[] values) implements BsoNode {
+public record BsoULongArray(long[] values) implements BsoArray {
     @Override
     public long[] asLongArray(long[] values) {
         return this.values;

@@ -2,7 +2,7 @@ package io.github.kalmemarq.bso;
 
 import java.util.Arrays;
 
-public record BsoByteArray(byte[] values) implements BsoNode {
+public record BsoByteArray(byte[] values) implements BsoArray {
     @Override
     public byte[] asByteArray(byte[] values) {
         return this.values;

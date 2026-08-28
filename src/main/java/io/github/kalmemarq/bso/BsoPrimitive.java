@@ -5,4 +5,9 @@ public sealed interface BsoPrimitive extends BsoNode permits BsoBool, BsoByte, B
     default BsoNode copy() {
         return this;
     }
+
+    @Override
+    default boolean isNumber() {
+        return true;
+    }
 }

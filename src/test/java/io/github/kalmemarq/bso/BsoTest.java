@@ -21,11 +21,11 @@ public class BsoTest {
         map.putBool("t", true);
         map.putBool("f", false);
         map.putShort("s", 400);
-        map.put("us", new BsoUShort((short) 40000));
+        map.putUShort("us", 40000);
         map.putInt("i", 1_000_000);
         map.putUInt("ui", 3_000_000_000L);
         map.putLong("l", Long.MIN_VALUE);
-        map.put("ul", new BsoULong(-1L));
+        map.putULong("ul", -1L);
         map.putFloat("fl", 1.5f);
         map.putDouble("d", Math.PI);
         map.putString("str", "hello");
@@ -87,6 +87,28 @@ public class BsoTest {
         map.put("da", new BsoDoubleArray(new double[length]));
 
         assertBinaryRoundtrip(map);
+    }
+
+    @Test
+    void binaryRoundtripUtf8StringUsesByteLength() throws IOException {
+        BsoMap map = new BsoMap();
+        map.putString("text", "é".repeat(200));
+
+        assertBinaryRoundtrip(map);
+    }
+
+    @Test
+    void customTypeIsLookedUpOnContextNotGlobal() throws IOException {
+        BsoUtils.unregisterAllCustomTypes();
+        BsoContext context = new BsoContext();
+        context.register(UUIDType.INSTANCE);
+        UUID uuid = UUID.fromString("3df8b598-0c8c-4e0f-af96-b107f3b9934a");
+        BsoCustom<UUID> node = new BsoCustom<>(UUIDType.INSTANCE, uuid);
+
+        Path path = this.tempDir.resolve("uuid-ctx.bso");
+        BsoUtils.write(path, node);
+        Assertions.assertThrows(IOException.class, () -> BsoUtils.read(path));
+        Assertions.assertEquals(node, BsoUtils.read(path, context));
     }
 
     @Test

@@ -8,11 +8,19 @@ import java.nio.file.Path;
 
 public final class SBsoUtils {
     public static BsoNode read(Path path) throws IOException {
-        return new SBsoReader().read(path);
+        return read(path, BsoContext.global());
+    }
+
+    public static BsoNode read(Path path, BsoContext context) throws IOException {
+        return new SBsoReader(context).read(path);
     }
 
     public static BsoNode read(String input) throws IOException {
-        return new SBsoReader().read(input);
+        return read(input, BsoContext.global());
+    }
+
+    public static BsoNode read(String input, BsoContext context) throws IOException {
+        return new SBsoReader(context).read(input);
     }
 
     public static void write(Path path, BsoNode node) throws IOException {

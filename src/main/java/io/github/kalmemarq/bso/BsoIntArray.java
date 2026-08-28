@@ -2,7 +2,7 @@ package io.github.kalmemarq.bso;
 
 import java.util.Arrays;
 
-public record BsoIntArray(int[] values) implements BsoNode {
+public record BsoIntArray(int[] values) implements BsoArray {
     @Override
     public int[] asIntArray(int[] values) {
         return this.values;

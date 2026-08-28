@@ -7,7 +7,6 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
-import java.util.LinkedHashMap;
 import java.util.UUID;
 
 public class SBsoTest {
@@ -27,8 +26,8 @@ public class SBsoTest {
     }
 
     @Test
-    void minifiedStringifyUsesInsertionOrderWhenLinked() {
-        BsoMap map = new BsoMap(new LinkedHashMap<>());
+    void minifiedStringifyUsesInsertionOrder() {
+        BsoMap map = new BsoMap();
         map.putUByte("age", 21);
         map.putString("name", "Kalme");
         map.putFloat(".hey.", 0.55f);
@@ -102,7 +101,7 @@ public class SBsoTest {
 
     @Test
     void stringEscapesAndQuotedKeys() throws IOException {
-        BsoMap map = new BsoMap(new LinkedHashMap<>());
+        BsoMap map = new BsoMap();
         map.putString("plain", "a\"b\nc");
         map.putInt("spaced key", 1);
 
@@ -144,7 +143,7 @@ public class SBsoTest {
         list.addInt(2);
         list.addInt(3);
 
-        BsoMap map = new BsoMap(new LinkedHashMap<>());
+        BsoMap map = new BsoMap();
         map.put("nums", list);
 
         Assertions.assertEquals("{\n  nums: [1, 2, 3]\n}", SBsoUtils.stringify(map, SBsoWriteOptions.PRETTY_SMART));

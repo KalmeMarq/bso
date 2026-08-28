@@ -17,26 +17,16 @@ public class BsoUtils {
     private static final int USHORT_MAX = Short.MAX_VALUE * 2 + 1;
     private static final long UINT_MAX = Integer.MAX_VALUE * 2L + 1L;
 
-    private static final Map<Integer, BsoCustomType<?>> customTypes = new HashMap<>();
-    protected static final Map<Class<?>, BsoCustomType<?>> customTypeByClazz = new HashMap<>();
-    protected static final Map<String, BsoCustomType<?>> customTypeByName = new HashMap<>();
-
     public static <T> BsoCustomType<T> registerCustomType(BsoCustomType<T> type) {
-        customTypes.put(type.getId(), type);
-        customTypeByClazz.put(type.getClazz(), type);
-        customTypeByName.put(type.getName(), type);
-        return type;
+        return BsoContext.global().register(type);
     }
 
     public static <T> BsoCustomType<T> unregisterCustomType(BsoCustomType<T> type) {
-        customTypes.remove(type.getId());
-        customTypeByClazz.remove(type.getClazz());
-        customTypeByName.remove(type.getName());
-        return type;
+        return BsoContext.global().unregister(type);
     }
 
     public static void unregisterAllCustomTypes() {
-        customTypes.clear();
+        BsoContext.global().unregisterAll();
     }
 
     /*
@@ -110,25 +100,29 @@ public class BsoUtils {
         }
     }
 
-    private static void writeADID(DataOutput out, int ad, int id) throws IOException {
+    static void writeADID(DataOutput out, int ad, int id) throws IOException {
         if (id < 16) { // 0AAA TTTT
             out.write((ad & 0b0111) << 4 | (id & 0b1111));
         } else if (id < 256) { // 10XX XXXX TTTT TTTT
             out.write(0b1000_0000 | (ad & 0b0011_1111));
             out.write(id & 0b1111_1111);
-        } else if (id < 4096) { // 110X XXXX XXXX TTTT TTTT TTTT
+        } else if (id < 4096) { // 110A AAAA AAAA TTTT TTTT TTTT
             out.write(0b1100_0000 | ((ad >> 4) & 0b1_1111));
-            out.write((ad & 0b1111) | (id >> 8) & 0b1111);
+            out.write(((ad & 0b1111) << 4) | ((id >> 8) & 0b1111));
             out.write(id & 0b1111_1111);
-        } else if (id < 262144) { // 1110 XXXX XXXX XXTT TTTT TTTT TTTT TTTT
-            out.write(0b1110_0000 | (ad >> 6) & 0b1111);
-            out.write(((ad & 0b11_1111) << 2) | (id >> 10) & 0b1111_1111);
+        } else if (id < 262144) { // 1110 AAAA AAAA AATT TTTT TTTT TTTT TTTT
+            out.write(0b1110_0000 | ((ad >> 6) & 0b1111));
+            out.write(((ad & 0b11_1111) << 2) | ((id >> 16) & 0b11));
             out.write((id >> 8) & 0b1111_1111);
             out.write(id & 0b1111_1111);
         }
     }
 
     public static BsoNode read(Path path) throws IOException {
+        return read(path, BsoContext.global());
+    }
+
+    public static BsoNode read(Path path, BsoContext context) throws IOException {
         try (InputStream inS = Files.newInputStream(path)) {
             int header = inS.read();
             int version = (header >> 4) & 0xF;
@@ -145,7 +139,7 @@ public class BsoUtils {
                     long adid = readADID(in);
                     int ad = (int) ((adid >> 32L) & 0xFFFFFFFFL);
                     int id = (int) (adid & 0xFFFFFFFFL);
-                    return readBsoNode(in, id, ad);
+                    return readBsoNode(in, id, ad, context);
                 }
             } else {
                 try (DataInputStream input = new DataInputStream(new GZIPInputStream(inS) )) {
@@ -154,13 +148,13 @@ public class BsoUtils {
                     long adid = readADID(in);
                     int ad = (int) ((adid >> 32L) & 0xFFFFFFFFL);
                     int id = (int) (adid & 0xFFFFFFFFL);
-                    return readBsoNode(in, id, ad);
+                    return readBsoNode(in, id, ad, context);
                 }
             }
         }
     }
 
-    private static long readADID(DataInput in) throws IOException {
+    static long readADID(DataInput in) throws IOException {
          int b = in.readUnsignedByte();
          if ((b & 0b1000_0000) == 0) { // 0AAA TTTT
              long ad = b >> 4;
@@ -176,8 +170,8 @@ public class BsoUtils {
              int c = in.readUnsignedByte();
              int d = in.readUnsignedByte();
 
-             long ad = (b & 0b1_1111) << 4 | d >> 4;
-             long id = (c & 0xF) << 8 | d;
+             long ad = ((b & 0b1_1111) << 4) | (c >> 4);
+             long id = ((c & 0xF) << 8) | d;
              return ad << 32L | id;
          } else if ((b & 0b1111_0000) == 0b1110_0000) { // 1110 XXXX XXXX XXTT TTTT TTTT TTTT TTTT (0xFF 0x3) (0x3 0xFF 0xFF)
              int c = in.readUnsignedByte();
@@ -193,6 +187,10 @@ public class BsoUtils {
     }
 
     public static BsoNode readBsoNode(DataInput in, int id, int ad) throws IOException {
+        return readBsoNode(in, id, ad, BsoContext.global());
+    }
+
+    public static BsoNode readBsoNode(DataInput in, int id, int ad, BsoContext context) throws IOException {
         switch (id) {
             case 0b0001 -> {
                 if (ad == 0b0000)
@@ -287,7 +285,7 @@ public class BsoUtils {
                     int eid = (int) (adid & 0xFFFFFFFFL);
 
                     String key = readBsoMapKey(in, ad);
-                    BsoNode value = readBsoNode(in, eid, ead);
+                    BsoNode value = readBsoNode(in, eid, ead, context);
                     map.put(key, value);
                 }
 
@@ -304,7 +302,7 @@ public class BsoUtils {
                     int ead = (int) ((adid >> 32L) & 0xFFFFFFFFL);
                     int eid = (int) (adid & 0xFFFFFFFFL);
 
-                    BsoNode value = readBsoNode(in, eid, ead);
+                    BsoNode value = readBsoNode(in, eid, ead, context);
                     list.add(value);
                 }
 
@@ -361,7 +359,7 @@ public class BsoUtils {
                 }
             }
             default -> {
-                BsoCustomType<?> customType = customTypes.get(id);
+                BsoCustomType<?> customType = context.byId(id);
                 if (customType != null) {
                     return customType.read(in, ad);
                 }
@@ -762,49 +760,29 @@ public class BsoUtils {
         } else if (node instanceof BsoDouble) {
             return 0b0001;
         } else if (node instanceof BsoString(String value)) {
-            int len = value.length();
-            return (len & 0xFFFFFF00) == 0 ? 0b0000 : (len & 0xFFFF0000) == 0 ? 0b0010 : 0b0100;
+            int len = value.getBytes(StandardCharsets.UTF_8).length;
+            return packedLengthAd(len);
         } else if (node instanceof BsoMap n) {
-            int len = n.size();
-            return (len & 0xFFFFFF00) == 0 ? 0b0000 : (len & 0xFFFF0000) == 0 ? 0b0010 : 0b0100;
+            return packedLengthAd(n.size());
         } else if (node instanceof BsoList n) {
-            int len = n.size();
-            return (len & 0xFFFFFF00) == 0 ? 0b0000 : (len & 0xFFFF0000) == 0 ? 0b0010 : 0b0100;
-        } else if (node instanceof BsoByteArray n) {
-            int len = n.size();
-            return (len & 0xFFFFFF00) == 0 ? 0b0000 : (len & 0xFFFF0000) == 0 ? 0b0010 : 0b0100;
-        } else if (node instanceof BsoUByteArray n) {
-            int len = n.size();
-            return 0b0001 | ((len & 0xFFFFFF00) == 0 ? 0b0000 : (len & 0xFFFF0000) == 0 ? 0b0010 : 0b0100);
-        } else if (node instanceof BsoShortArray n) {
-            int len = n.size();
-            return (len & 0xFFFFFF00) == 0 ? 0b0000 : (len & 0xFFFF0000) == 0 ? 0b0010 : 0b0100;
-        } else if (node instanceof BsoUShortArray n) {
-            int len = n.size();
-            return 0b0001 | ((len & 0xFFFFFF00) == 0 ? 0b0000 : (len & 0xFFFF0000) == 0 ? 0b0010 : 0b0100);
-        } else if (node instanceof BsoIntArray n) {
-            int len = n.size();
-            return (len & 0xFFFFFF00) == 0 ? 0b0000 : (len & 0xFFFF0000) == 0 ? 0b0010 : 0b0100;
-        } else if (node instanceof BsoUIntArray n) {
-            int len = n.size();
-            return 0b0001 | ((len & 0xFFFFFF00) == 0 ? 0b0000 : (len & 0xFFFF0000) == 0 ? 0b0010 : 0b0100);
-        } else if (node instanceof BsoLongArray n) {
-            int len = n.size();
-            return (len & 0xFFFFFF00) == 0 ? 0b0000 : (len & 0xFFFF0000) == 0 ? 0b0010 : 0b0100;
-        } else if (node instanceof BsoULongArray n) {
-            int len = n.size();
-            return 0b0001 | ((len & 0xFFFFFF00) == 0 ? 0b0000 : (len & 0xFFFF0000) == 0 ? 0b0010 : 0b0100);
-        } else if (node instanceof BsoFloatArray n) {
-            int len = n.size();
-            return (len & 0xFFFFFF00) == 0 ? 0b0000 : (len & 0xFFFF0000) == 0 ? 0b0010 : 0b0100;
-        } else if (node instanceof BsoDoubleArray n) {
-            int len = n.size();
-            return 0b0001 | ((len & 0xFFFFFF00) == 0 ? 0b0000 : (len & 0xFFFF0000) == 0 ? 0b0010 : 0b0100);
+            return packedLengthAd(n.size());
+        } else if (node instanceof BsoArray n) {
+            int packed = packedLengthAd(n.size());
+            boolean unsignedOrDouble = n instanceof BsoUByteArray
+                    || n instanceof BsoUShortArray
+                    || n instanceof BsoUIntArray
+                    || n instanceof BsoULongArray
+                    || n instanceof BsoDoubleArray;
+            return unsignedOrDouble ? 0b0001 | packed : packed;
         } else if (node instanceof BsoCustom<?> n) {
             return ((BsoCustomType<Object>) n.type()).getAd((BsoCustom<Object>) n);
         } else {
             throw new IllegalArgumentException("Unknown type");
         }
+    }
+
+    private static int packedLengthAd(int len) {
+        return (len & 0xFFFFFF00) == 0 ? 0b0000 : (len & 0xFFFF0000) == 0 ? 0b0010 : 0b0100;
     }
 
     public enum Endianess {

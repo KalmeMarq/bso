@@ -19,6 +19,16 @@ public record BsoBool(boolean value) implements BsoPrimitive {
     }
 
     @Override
+    public boolean isNumber() {
+        return false;
+    }
+
+    @Override
+    public boolean isBool() {
+        return true;
+    }
+
+    @Override
     public byte[] asByteArray(byte[] values) {
         return new byte[] {this.asByte()};
     }

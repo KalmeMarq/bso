@@ -7,7 +7,7 @@ public final class BsoMap implements BsoNode {
     private final Map<String, BsoNode> map;
 
     public BsoMap() {
-        this(new HashMap<>());
+        this(new LinkedHashMap<>());
     }
 
     public BsoMap(Map<String, BsoNode> map) {
@@ -60,7 +60,7 @@ public final class BsoMap implements BsoNode {
     }
 
     public void putUShort(String name, int value) {
-        this.map.put(name, new BsoShort((short) (value & 0xFFFF)));
+        this.map.put(name, new BsoUShort((short) (value & 0xFFFF)));
     }
 
     public void putInt(String name, int value) {
@@ -76,7 +76,7 @@ public final class BsoMap implements BsoNode {
     }
 
     public void putULong(String name, long value) {
-        this.map.put(name, new BsoLong(value));
+        this.map.put(name, new BsoULong(value));
     }
 
     public void putFloat(String name, float value) {
@@ -132,6 +132,11 @@ public final class BsoMap implements BsoNode {
     }
 
     @Override
+    public boolean isMap() {
+        return true;
+    }
+
+    @Override
     public int size() {
         return this.map.size();
     }
@@ -142,7 +147,7 @@ public final class BsoMap implements BsoNode {
 
     @Override
     public BsoNode copy() {
-        HashMap<String, BsoNode> map = new HashMap<>();
+        LinkedHashMap<String, BsoNode> map = new LinkedHashMap<>();
         this.map.forEach((key, value) -> map.put(key, value.copy()));
         return new BsoMap(map);
     }

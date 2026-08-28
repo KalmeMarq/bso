@@ -5,4 +5,14 @@ public record BsoString(String value) implements BsoPrimitive {
     public String asString(String defaultValue) {
         return this.value;
     }
+
+    @Override
+    public boolean isNumber() {
+        return false;
+    }
+
+    @Override
+    public boolean isString() {
+        return true;
+    }
 }

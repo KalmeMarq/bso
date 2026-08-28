@@ -2,7 +2,7 @@ package io.github.kalmemarq.bso;
 
 import java.util.Arrays;
 
-public record BsoDoubleArray(double[] values) implements BsoNode {
+public record BsoDoubleArray(double[] values) implements BsoArray {
     @Override
     public double[] asDoubleArray(double[] values) {
         return this.values;

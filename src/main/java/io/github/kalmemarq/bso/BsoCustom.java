@@ -5,13 +5,17 @@ import java.io.DataOutput;
 import java.io.IOException;
 
 public record BsoCustom<T>(BsoCustomType<T> type, T value) implements BsoNode {
-    @SuppressWarnings("unchecked")
     public BsoCustom(T value) {
-        this((BsoCustomType<T>) getCustomTypeForValueClazz(value.getClass()), value);
+        this(BsoContext.global(), value);
     }
 
-    private static BsoCustomType<?> getCustomTypeForValueClazz(Class<?> clazz) {
-        BsoCustomType<?> customType = BsoUtils.customTypeByClazz.get(clazz);
+    @SuppressWarnings("unchecked")
+    public BsoCustom(BsoContext context, T value) {
+        this((BsoCustomType<T>) typeFor(context, value.getClass()), value);
+    }
+
+    private static BsoCustomType<?> typeFor(BsoContext context, Class<?> clazz) {
+        BsoCustomType<?> customType = context.byClass(clazz);
         if (customType == null) throw new IllegalArgumentException("There's no custom type for class '" + clazz.getName() + "'");
         return customType;
     }

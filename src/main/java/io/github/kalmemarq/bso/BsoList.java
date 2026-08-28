@@ -20,6 +20,9 @@ public final class BsoList implements BsoNode {
 
     @Override
     public BsoNode get(int index) {
+        if (index < 0 || index >= this.list.size()) {
+            return null;
+        }
         return this.list.get(index);
     }
 
@@ -49,7 +52,7 @@ public final class BsoList implements BsoNode {
     }
 
     public void addUShort(int value) {
-        this.list.add(new BsoShort((short) (value & 0xFFFF)));
+        this.list.add(new BsoUShort((short) (value & 0xFFFF)));
     }
 
     public void addInt(int value) {
@@ -65,7 +68,7 @@ public final class BsoList implements BsoNode {
     }
 
     public void addULong(long value) {
-        this.list.add(new BsoLong(value));
+        this.list.add(new BsoULong(value));
     }
 
     public void addFloat(float value) {
@@ -78,6 +81,11 @@ public final class BsoList implements BsoNode {
 
     public void addString(String value) {
         this.list.add(new BsoString(value));
+    }
+
+    @Override
+    public boolean isList() {
+        return true;
     }
 
     @Override

@@ -5,7 +5,7 @@ import java.util.Iterator;
 import java.util.Map.Entry;
 import java.util.Set;
 
-public sealed interface BsoNode extends Iterable<BsoNode> permits BsoByteArray, BsoCustom, BsoDoubleArray, BsoFloatArray, BsoIntArray, BsoList, BsoLongArray, BsoMap, BsoMissing, BsoPrimitive, BsoShortArray, BsoUByteArray, BsoUIntArray, BsoULongArray, BsoUShortArray {
+public sealed interface BsoNode extends Iterable<BsoNode> permits BsoArray, BsoCustom, BsoList, BsoMap, BsoMissing, BsoPrimitive {
     @Override
     default Iterator<BsoNode> iterator() {
         return Collections.emptyIterator();
@@ -179,6 +179,30 @@ public sealed interface BsoNode extends Iterable<BsoNode> permits BsoByteArray, 
     //
 
     default boolean isMissing() {
+        return false;
+    }
+
+    default boolean isMap() {
+        return false;
+    }
+
+    default boolean isList() {
+        return false;
+    }
+
+    default boolean isArray() {
+        return false;
+    }
+
+    default boolean isNumber() {
+        return false;
+    }
+
+    default boolean isString() {
+        return false;
+    }
+
+    default boolean isBool() {
         return false;
     }
 }

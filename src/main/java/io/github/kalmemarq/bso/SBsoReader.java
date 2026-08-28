@@ -11,10 +11,19 @@ import java.nio.file.Path;
 import java.util.*;
 
 public class SBsoReader {
+    private final BsoContext context;
     private Reader reader;
     private int currChr;
     private int line;
     private int column;
+
+    public SBsoReader() {
+        this(BsoContext.global());
+    }
+
+    public SBsoReader(BsoContext context) {
+        this.context = context;
+    }
 
     public BsoNode read(Path path) throws IOException {
         this.currChr = -1;
@@ -90,7 +99,7 @@ public class SBsoReader {
 
         this.skipWhitespace();
 
-        BsoCustomType<?> customType = BsoUtils.customTypeByName.get(nb.toString());
+        BsoCustomType<?> customType = this.context.byName(nb.toString());
         if (customType != null) {
             int beginLine = this.line;
             int beginColumn = this.column;

@@ -2,7 +2,7 @@ package io.github.kalmemarq.bso;
 
 import java.util.Arrays;
 
-public record BsoUShortArray(short[] values) implements BsoNode {
+public record BsoUShortArray(short[] values) implements BsoArray {
     @Override
     public short[] asShortArray(short[] values) {
         return this.values;

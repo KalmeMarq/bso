@@ -68,6 +68,9 @@ public class BsoMapListTest {
         Assertions.assertEquals(2, list.remove(1).asInt());
         Assertions.assertEquals(2, list.size());
         Assertions.assertEquals(3, list.get(1).asInt());
+        Assertions.assertNull(list.get(-1));
+        Assertions.assertNull(list.get(3));
+        Assertions.assertTrue(list.path(3).isMissing());
     }
 
     @Test
@@ -82,5 +85,19 @@ public class BsoMapListTest {
 
         Assertions.assertEquals(99, list.get(0).get("n").asInt());
         Assertions.assertEquals(1, copy.get(0).get("n").asInt());
+    }
+
+    @Test
+    void nodeTypeQueries() {
+        Assertions.assertTrue(new BsoMap().isMap());
+        Assertions.assertTrue(new BsoList().isList());
+        Assertions.assertTrue(new BsoIntArray(new int[]{1}).isArray());
+        Assertions.assertTrue(new BsoInt(3).isNumber());
+        Assertions.assertTrue(new BsoULong(-1L).isNumber());
+        Assertions.assertFalse(new BsoString("x").isNumber());
+        Assertions.assertTrue(new BsoString("x").isString());
+        Assertions.assertFalse(BsoBool.TRUE.isNumber());
+        Assertions.assertTrue(BsoBool.TRUE.isBool());
+        Assertions.assertFalse(new BsoMap().isList());
     }
 }
